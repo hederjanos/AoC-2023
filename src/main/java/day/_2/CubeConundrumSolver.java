@@ -56,7 +56,10 @@ public class CubeConundrumSolver extends Solver<Integer> {
 
     @Override
     protected Integer solvePartTwo() {
-        return null;
+        return puzzle.stream()
+                .map(this::parseAGame)
+                .mapToInt(GameDetails::getPower)
+                .sum();
     }
 
     private static class GameDetails {
@@ -79,6 +82,30 @@ public class CubeConundrumSolver extends Solver<Integer> {
                 }
             }
             return true;
+        }
+
+        int getPower() {
+            int maxRed = 1;
+            int maxGreen = 1;
+            int maxBlue = 1;
+            for (CubeSubSet subset : subsets) {
+                for (CubeState state : subset.states) {
+                    switch (state.color) {
+                        case red:
+                            maxRed = Math.max(maxRed, state.count);
+                            break;
+                        case green:
+                            maxGreen = Math.max(maxGreen, state.count);
+                            break;
+                        case blue:
+                            maxBlue = Math.max(maxBlue, state.count);
+                            break;
+                        default:
+                            System.out.println("Hohohohoho");
+                    }
+                }
+            }
+            return maxRed * maxGreen * maxBlue;
         }
     }
 

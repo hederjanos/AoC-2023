@@ -14,4 +14,10 @@ public class CubeConundrumSolverTest {
         assertEquals(8, cubeConundrumSolver.solvePartOne());
     }
 
+    @Test
+    void testPartTwo() {
+        cubeConundrumSolver = new CubeConundrumSolver("day2-test1.txt");
+        assertEquals(2286, cubeConundrumSolver.solvePartTwo());
+    }
+
 }
