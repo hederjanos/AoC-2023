@@ -7,14 +7,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CubeConundrumSolver extends Solver<Integer> {
+public class Day2Solver extends Solver<Integer> {
     private final Pattern gamePattern = Pattern.compile("^Game\\s(\\d+):(.+)$");
     private final Pattern cubeStatePattern = Pattern.compile("^(\\d+)\\s(\\w+)+$");
     private final String SUBSET_SEPARATOR = ";";
     private final String CUBE_STATE_SEPARATOR = ",";
     private final Set<CubeState> config = Set.of(new CubeState(Color.red, 12), new CubeState(Color.green, 13), new CubeState(Color.blue, 14));
 
-    public CubeConundrumSolver(String filename) {
+    public Day2Solver(String filename) {
         super(filename);
     }
 
@@ -55,7 +55,7 @@ public class CubeConundrumSolver extends Solver<Integer> {
     }
 
     @Override
-    protected Integer solvePartTwo() {
+    public Integer solvePartTwo() {
         return puzzle.stream()
                 .map(this::parseAGame)
                 .mapToInt(GameDetails::getPower)

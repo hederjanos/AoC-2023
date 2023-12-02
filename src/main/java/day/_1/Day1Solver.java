@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class TrebuchetSolver extends Solver<Integer> {
+public class Day1Solver extends Solver<Integer> {
 
     private enum Digit {
         one(1), two(2), three(3), four(4), five(5), six(6), seven(7), eight(8), nine(9);
@@ -25,7 +25,7 @@ public class TrebuchetSolver extends Solver<Integer> {
         }
     }
 
-    public TrebuchetSolver(String filename) {
+    public Day1Solver(String filename) {
         super(filename);
     }
 
@@ -50,7 +50,7 @@ public class TrebuchetSolver extends Solver<Integer> {
     }
 
     @Override
-    protected Integer solvePartTwo() {
+    public Integer solvePartTwo() {
         Map<Integer, List<DigitPosition>> digitMap = IntStream.range(0, puzzle.size())
                 .boxed()
                 .collect(Collectors.toMap(

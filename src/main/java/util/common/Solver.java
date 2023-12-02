@@ -12,9 +12,9 @@ public abstract class Solver<V> {
         puzzle = puzzleReader.getPuzzleLines();
     }
 
-    protected abstract V solvePartOne();
+    public abstract V solvePartOne();
 
-    protected abstract V solvePartTwo();
+    public abstract V solvePartTwo();
 
     public void printResults() {
         System.out.println("----------------------------------------");

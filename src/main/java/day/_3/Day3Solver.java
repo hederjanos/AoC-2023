@@ -1,8 +1,5 @@
 package day._3;
 
-import java.lang.Integer;
-import java.lang.Override;
-import java.lang.String;
 import util.common.Solver;
 
 public class Day3Solver extends Solver<Integer> {
