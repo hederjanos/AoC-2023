@@ -9,11 +9,11 @@ public class Day10SolverTest {
 
   @Test
   public void testPartOne() {
-    solver = new Day10Solver("day10-test.txt");;
+    solver = new Day10Solver("day10-test.txt");
   }
 
   @Test
   public void testPartTwo() {
-    solver = new Day10Solver("day10-test.txt");;
+    solver = new Day10Solver("day10-test.txt");
   }
 }

@@ -6,7 +6,6 @@ import util.common.Solver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Day2SolverTest {
-
     private Solver<Integer> cubeConundrumSolver;
 
     @Test
@@ -20,5 +19,4 @@ public class Day2SolverTest {
         cubeConundrumSolver = new Day2Solver("day2-test1.txt");
         assertEquals(2286, cubeConundrumSolver.solvePartTwo());
     }
-
 }

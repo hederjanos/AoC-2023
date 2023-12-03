@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Day3Solver extends Solver<Integer> {
-
+    private final Pattern numbersPattern = Pattern.compile("\\d+");
+    private final char PERIOD = '.';
+    private final char ASTERISK = '*';
     private final EngineSchematic engineSchematic;
 
     public Day3Solver(String fileName) {
@@ -25,8 +27,7 @@ public class Day3Solver extends Solver<Integer> {
         Set<Symbol> symbols = new HashSet<>();
         for (int i = 0; i < puzzle.size(); i++) {
             String line = puzzle.get(i);
-            Pattern num = Pattern.compile("\\d+");
-            Matcher matcher = num.matcher(line);
+            Matcher matcher = numbersPattern.matcher(line);
             while (matcher.find()) {
                 String group = matcher.group();
                 int start = matcher.start();
@@ -40,7 +41,7 @@ public class Day3Solver extends Solver<Integer> {
             }
             for (int j = 0; j < line.length(); j++) {
                 char charAt = line.charAt(j);
-                if (!Character.isDigit(charAt) && charAt != '.') {
+                if (!Character.isDigit(charAt) && charAt != PERIOD) {
                     symbols.add(new Symbol(charAt, new Coordinate(j, i)));
                 }
             }
@@ -58,9 +59,7 @@ public class Day3Solver extends Solver<Integer> {
         return engineSchematic.getSumOfGearRatios();
     }
 
-    private static class EngineSchematic {
-        public static final char PERIOD = '.';
-        public static final char ASTERISK = '*';
+    private class EngineSchematic {
         int width;
         int height;
         Set<PartNumber> partNumbers;

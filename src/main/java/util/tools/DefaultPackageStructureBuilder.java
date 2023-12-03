@@ -1,4 +1,4 @@
-package util.io;
+package util.tools;
 
 import com.squareup.javapoet.*;
 import org.junit.jupiter.api.Test;
@@ -12,14 +12,15 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.stream.IntStream;
 
-// TODO refactor it, this class fully depends on maven default standards and not parameterizable
+// INFO Use just in place!
+// This class fully depends on maven standard code organizing structure and is not parameterizable.
 public class DefaultPackageStructureBuilder {
 
     public static final int DAYS = 25;
 
     public static void main(String[] args) {
         createPackageStructure();
-        writeTemplateResources();
+        writeInputTemplateResources();
     }
 
     public static void createPackageStructure() {
@@ -141,20 +142,24 @@ public class DefaultPackageStructureBuilder {
         }
     }
 
-    private static void writeTemplateResources() {
+    private static void writeInputTemplateResources() {
         IntStream.rangeClosed(1, DAYS)
                 .boxed()
                 .forEach(day -> {
-                    try (BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of("src/main/resources", "day" + day + ".txt"), StandardOpenOption.CREATE)) {
-                        bufferedWriter.newLine();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    try (BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of("src/test/resources", "day" + day + "-test.txt"), StandardOpenOption.CREATE)) {
-                        bufferedWriter.newLine();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    Path path = Path.of("src/main/resources", "day" + day + ".txt");
+                    writeFile(path);
+                    path = Path.of("src/test/resources", "day" + day + "-test.txt");
+                    writeFile(path);
                 });
+    }
+
+    private static void writeFile(Path path) {
+        if (!Files.exists(path)) {
+            try (BufferedWriter bufferedWriter = Files.newBufferedWriter(path, StandardOpenOption.CREATE_NEW)) {
+                bufferedWriter.newLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

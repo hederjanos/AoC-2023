@@ -6,7 +6,6 @@ import util.common.Solver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Day1SolverTest {
-
     private Solver<Integer> day1Solver;
 
     @Test
@@ -20,5 +19,4 @@ public class Day1SolverTest {
         day1Solver = new Day1Solver("day1-test2.txt");
         assertEquals(281, day1Solver.solvePartTwo());
     }
-
 }
