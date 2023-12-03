@@ -52,7 +52,7 @@ public class DefaultPackageStructureBuilder {
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(void.class)
                 .addParameter(String[].class, "args")
-                .addStatement("new Day" + day + "Solver(" + inputFileName + ").printResults();")
+                .addStatement("new Day" + day + "Solver(" + inputFileName + ").printResults()")
                 .build();
 
         TypeSpec classSpec = TypeSpec.classBuilder(className)
@@ -112,14 +112,14 @@ public class DefaultPackageStructureBuilder {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Test.class)
                 .returns(void.class)
-                .addStatement("solver = new " + typeSpec.name + "(" + inputFileName + ");")
+                .addStatement("solver = new " + typeSpec.name + "(" + inputFileName + ")")
                 .build();
 
         MethodSpec method2 = MethodSpec.methodBuilder("testPartTwo")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Test.class)
                 .returns(void.class)
-                .addStatement("solver = new " + typeSpec.name + "(" + inputFileName + ");")
+                .addStatement("solver = new " + typeSpec.name + "(" + inputFileName + ")")
                 .build();
 
         TypeSpec classSpec = TypeSpec.classBuilder(className)
