@@ -1,6 +1,6 @@
 package day._4;
 
-import java.lang.Integer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import util.common.Solver;
 
@@ -10,6 +10,7 @@ public class Day4SolverTest {
   @Test
   public void testPartOne() {
     solver = new Day4Solver("day4-test.txt");
+    Assertions.assertEquals(13, solver.solvePartOne());
   }
 
   @Test
