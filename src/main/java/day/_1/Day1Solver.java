@@ -2,12 +2,8 @@ package day._1;
 
 import util.common.Solver;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Day1Solver extends Solver<Integer> {
 
@@ -31,81 +27,35 @@ public class Day1Solver extends Solver<Integer> {
 
     @Override
     public Integer solvePartOne() {
-        return puzzle.stream().map(this::collectDigitsInOneLine).mapToInt(this::parseCalibrationValue).sum();
+        return puzzle.stream().map(line -> collectDigitsInOneLine(line, false)).mapToInt(this::parseCalibrationValue).sum();
     }
 
-    private List<DigitPosition> collectDigitsInOneLine(String line) {
-        List<DigitPosition> digits = new ArrayList<>();
+    private List<Integer> collectDigitsInOneLine(String line, boolean withSpelled) {
+        List<Integer> digits = new ArrayList<>();
         for (int i = 0; i < line.length(); i++) {
             char charAt = line.charAt(i);
             if (Character.isDigit(charAt)) {
-                digits.add(new DigitPosition(Character.getNumericValue(charAt), i));
+                digits.add(Character.getNumericValue(charAt));
+            } else if (withSpelled) {
+                String substring = line.substring(i);
+                for (Digit digit : Digit.values()) {
+                    if (substring.startsWith(digit.name())) {
+                        digits.add(digit.getValue());
+                        break;
+                    }
+                }
             }
         }
         return digits;
     }
 
-    private int parseCalibrationValue(List<DigitPosition> positions) {
-        return Integer.parseInt(positions.get(0).getDigit() + String.valueOf(positions.get(positions.size() - 1).getDigit()));
+    private int parseCalibrationValue(List<Integer> digits) {
+        return Integer.parseInt(digits.get(0) + String.valueOf(digits.get(digits.size() - 1)));
     }
 
     @Override
     public Integer solvePartTwo() {
-        Map<Integer, List<DigitPosition>> digitMap = IntStream.range(0, puzzle.size())
-                .boxed()
-                .collect(Collectors.toMap(
-                        i -> i,
-                        i -> collectDigitsInOneLine(puzzle.get(i)),
-                        (existing, replacement) -> existing,
-                        HashMap::new
-                ));
-
-        Map<Integer, List<DigitPosition>> spelledDigitMap = IntStream.range(0, puzzle.size())
-                .boxed()
-                .collect(Collectors.toMap(
-                        i -> i,
-                        i -> collectSpelledDigitsInOneLine(puzzle.get(i)),
-                        (existing, replacement) -> existing,
-                        HashMap::new
-                ));
-
-        return IntStream.range(0, puzzle.size())
-                .mapToObj(i -> Stream.concat(digitMap.get(i).stream(), spelledDigitMap.get(i).stream())
-                        .sorted(Comparator.comparingInt(DigitPosition::getPosition))
-                        .collect(Collectors.toList()))
-                .mapToInt(this::parseCalibrationValue)
-                .sum();
-    }
-
-    private List<DigitPosition> collectSpelledDigitsInOneLine(String line) {
-        List<DigitPosition> digits = new ArrayList<>();
-        Arrays.stream(Digit.values())
-                .forEach(digit -> {
-                    Pattern pattern = Pattern.compile(digit.name());
-                    Matcher matcher = pattern.matcher(line);
-                    while (matcher.find()) {
-                        digits.add(new DigitPosition(digit.getValue(), matcher.start()));
-                    }
-                });
-        return digits;
-    }
-
-    private static class DigitPosition {
-        private final int digit;
-        private final int position;
-
-        public DigitPosition(int digit, int position) {
-            this.digit = digit;
-            this.position = position;
-        }
-
-        public int getDigit() {
-            return digit;
-        }
-
-        public int getPosition() {
-            return position;
-        }
+        return puzzle.stream().map(line -> collectDigitsInOneLine(line, true)).mapToInt(this::parseCalibrationValue).sum();
     }
 
 }
