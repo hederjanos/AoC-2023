@@ -124,6 +124,19 @@ public class Day3Solver extends Solver<Integer> {
                     .collect(Collectors.joining(System.lineSeparator()));
         }
 
+        char getPrintAt(int i, int j) {
+            char print;
+            Coordinate coordinate = new Coordinate(j, i);
+            Optional<Symbol> containsPartNumber = containsPartNumber(coordinate);
+            if (containsPartNumber.isPresent()) {
+                print = containsPartNumber.get().symbol;
+            } else {
+                Optional<Symbol> containsSymbol = containsSymbol(coordinate);
+                print = containsSymbol.map(symbol -> symbol.symbol).orElse(PERIOD);
+            }
+            return print;
+        }
+
         Optional<Symbol> containsPartNumber(Coordinate coordinate) {
             Optional<Symbol> optionalSymbol = Optional.empty();
             for (PartNumber partNumber : partNumbers) {
@@ -145,19 +158,6 @@ public class Day3Solver extends Solver<Integer> {
                 }
             }
             return optionalSymbol;
-        }
-
-        char getPrintAt(int i, int j) {
-            char print;
-            Coordinate coordinate = new Coordinate(j, i);
-            Optional<Symbol> containsPartNumber = containsPartNumber(coordinate);
-            if (containsPartNumber.isPresent()) {
-                print = containsPartNumber.get().symbol;
-            } else {
-                Optional<Symbol> containsSymbol = containsSymbol(coordinate);
-                print = containsSymbol.map(symbol -> symbol.symbol).orElse(PERIOD);
-            }
-            return print;
         }
     }
 
