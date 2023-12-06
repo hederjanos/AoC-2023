@@ -19,40 +19,26 @@ public class Day6Solver extends Solver<Long> {
     }
 
     private List<RaceInfo> parseRaceData() {
-        List<Integer> times = new ArrayList<>();
-        Matcher matcher = numPattern.matcher(puzzle.get(0));
-        while (matcher.find()) {
-            times.add(Integer.parseInt(matcher.group()));
-        }
-        List<Integer> bestDistances = new ArrayList<>();
-        matcher = numPattern.matcher(puzzle.get(1));
-        while (matcher.find()) {
-            bestDistances.add(Integer.parseInt(matcher.group()));
-        }
+        List<Integer> times = extractIntegers(puzzle.get(0));
+        List<Integer> bestDistances = extractIntegers(puzzle.get(1));
+
         return IntStream.range(0, times.size())
                 .mapToObj(i -> new RaceInfo(times.get(i), bestDistances.get(i)))
                 .collect(Collectors.toList());
     }
 
-    private RaceInfo parseRace() {
-        StringBuilder time = new StringBuilder();
-        Matcher matcher = numPattern.matcher(puzzle.get(0));
+    private List<Integer> extractIntegers(String input) {
+        List<Integer> integers = new ArrayList<>();
+        Matcher matcher = numPattern.matcher(input);
         while (matcher.find()) {
-            time.append(matcher.group());
+            integers.add(Integer.parseInt(matcher.group()));
         }
-        StringBuilder dist = new StringBuilder();
-        matcher = numPattern.matcher(puzzle.get(1));
-        while (matcher.find()) {
-            dist.append(matcher.group());
-        }
-        return new RaceInfo(Long.parseLong(time.toString()), Long.parseLong(dist.toString()));
+        return integers;
     }
 
     @Override
     public Long solvePartOne() {
-        return raceInfoList.stream()
-                .mapToLong(this::getNumberOfWaysToBeatRecord)
-                .reduce(1, (a, b) -> a * b);
+        return raceInfoList.stream().mapToLong(this::getNumberOfWaysToBeatRecord).reduce(1, (a, b) -> a * b);
     }
 
     private long getNumberOfWaysToBeatRecord(RaceInfo raceInfo) {
@@ -82,6 +68,18 @@ public class Day6Solver extends Solver<Long> {
     @Override
     public Long solvePartTwo() {
         return getNumberOfWaysToBeatRecord(parseRace());
+    }
+
+    private RaceInfo parseRace() {
+        List<Integer> times = extractIntegers(puzzle.get(0));
+        List<Integer> bestDistances = extractIntegers(puzzle.get(1));
+        return new RaceInfo(joinIntegersAndParse(times), joinIntegersAndParse(bestDistances));
+    }
+
+    private long joinIntegersAndParse(List<Integer> integers) {
+        return Long.parseLong(integers.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("")));
     }
 
     private static class RaceInfo {
