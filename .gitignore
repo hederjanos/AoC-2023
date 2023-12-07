@@ -36,3 +36,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### ignore input AoC input files ###
+!**/src/main/**/resources/
