@@ -6,7 +6,7 @@ import util.common.Solver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Day8SolverTest {
-  private Solver<Integer> solver;
+  private Solver<Long> solver;
 
   @Test
   public void testPartOne() {
