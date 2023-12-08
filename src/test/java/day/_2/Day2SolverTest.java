@@ -10,13 +10,13 @@ public class Day2SolverTest {
 
     @Test
     void testPartOne() {
-        cubeConundrumSolver = new Day2Solver("day2-test1.txt");
+        cubeConundrumSolver = new Day2Solver("day2-test.txt");
         assertEquals(8, cubeConundrumSolver.solvePartOne());
     }
 
     @Test
     void testPartTwo() {
-        cubeConundrumSolver = new Day2Solver("day2-test1.txt");
+        cubeConundrumSolver = new Day2Solver("day2-test.txt");
         assertEquals(2286, cubeConundrumSolver.solvePartTwo());
     }
 }
