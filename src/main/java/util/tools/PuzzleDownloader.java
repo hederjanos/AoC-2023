@@ -39,7 +39,7 @@ public class PuzzleDownloader {
         }
 
         String yearGroup = getYearPattern();
-        String dayGroup = "1?[1-9]|2[0-5]";
+        String dayGroup = "[1-9]|1[0-9]|2[0-5]";
 
         Integer year = null;
         Integer day = null;
@@ -84,7 +84,7 @@ public class PuzzleDownloader {
         if (message != null && !message.isBlank()) {
             System.err.println(message);
         } else {
-            System.err.println("Argument section must match the pattern (YYYY%d|dd, year must be between 2015 and current year, days must be between 1 and 25) OR 'all' expression!!");
+            System.err.println("Argument section must match the pattern (YYYY d|dd, year must be between 2015 and current year, days must be between 1 and 25) OR 'all' expression!!");
         }
         System.exit(1);
     }
@@ -92,6 +92,7 @@ public class PuzzleDownloader {
     public PuzzleDownloader(String sessionId) {
         this.sessionId = sessionId;
         this.httpClient = createHttpClient();
+        System.out.println("Downloader initialized.");
     }
 
     private HttpClient createHttpClient() {
@@ -135,6 +136,7 @@ public class PuzzleDownloader {
             String input = httpClient.send(httpRequest, BodyHandlers.ofString()).body();
             Path path = Path.of("src/main/resources", fileName);
             writeFile(path, input);
+            System.out.println(String.format("Input file was successfully downloaded from: %s and saved as : %s.", url, fileName));
         } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
