@@ -17,5 +17,6 @@ public class Day12SolverTest {
     @Test
     public void testPartTwo() {
         solver = new Day12Solver("day12-test.txt");
+        assertEquals(525152, solver.solvePartTwo());
     }
 }
