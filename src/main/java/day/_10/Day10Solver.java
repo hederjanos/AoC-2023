@@ -206,7 +206,8 @@ public class Day10Solver extends Solver<Integer> {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Pipe pipe)) return false;
+            if (!(o instanceof Pipe)) return false;
+            Pipe pipe = (Pipe) o;
             return Objects.equals(coordinate, pipe.coordinate);
         }
 
