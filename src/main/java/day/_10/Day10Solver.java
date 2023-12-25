@@ -18,188 +18,151 @@ public class Day10Solver extends Solver<Integer> {
     private final int width;
     private final int height;
 
-    private Coordinate start;
-    private final Map<Coordinate, Set<Coordinate>> pipes = new HashMap<>();
-    private final Set<Coordinate> junks = new HashSet<>();
+    private final Set<Pipe> pipes;
+    private final Pipe startPipe;
 
     public Day10Solver(String fileName) {
         super(fileName);
         width = puzzle.get(0).length();
         height = puzzle.size();
-        parsePipeMap();
-        initStart();
+        startPipe = findStartPipe();
+        if (startPipe != null) {
+            pipes = findLoop(startPipe);
+        } else {
+            throw new IllegalStateException();
+        }
     }
 
-    private void parsePipeMap() {
+    private Pipe findStartPipe() {
+        Pipe startPipe = null;
         for (int i = 0; i < puzzle.size(); i++) {
             for (int j = 0; j < puzzle.get(i).length(); j++) {
-                loadPipe(j, i);
+                char ch = puzzle.get(i).charAt(j);
+                Coordinate coordinate = new Coordinate(j, i);
+                if (ch == S) {
+                    startPipe = initStartPipe(coordinate);
+                    break;
+                }
+            }
+            if (startPipe != null) {
+                break;
             }
         }
+        return startPipe;
     }
 
-    private void loadPipe(int j, int i) {
-        Coordinate coordinate = new Coordinate(j, i);
+    private Pipe initStartPipe(Coordinate start) {
+        List<Pipe> pipes = List.of(new Pipe(start, V), new Pipe(start, H), new Pipe(start, L), new Pipe(start, J), new Pipe(start, $), new Pipe(start, F));
+        for (Pipe pipe : pipes) {
+            if (isValidPipe(pipe, getPossibleConnectorLocationsFor(pipe))) {
+                return pipe;
+            }
+        }
+        return null;
+    }
 
-        boolean isValidFrom1 = false;
-        boolean isValidFrom2 = false;
+    private Set<Pipe> findLoop(Pipe pipe) {
+        Set<Pipe> visitedPipes = new HashSet<>();
+        Deque<Pipe> paths = new ArrayDeque<>();
+        paths.offer(pipe);
+        visitedPipes.add(pipe);
+        while (!paths.isEmpty()) {
+            Pipe polled = paths.poll();
+            for (Coordinate coordinate : getPossibleConnectorLocationsFor(polled)) {
+                Pipe newPipe = new Pipe(coordinate, puzzle.get(coordinate.getY()).charAt(coordinate.getX()));
+                Set<Coordinate> possibleConnectorLocationsFor = getPossibleConnectorLocationsFor(newPipe);
+                if (!visitedPipes.contains(newPipe) && isValidPipe(newPipe, possibleConnectorLocationsFor)) {
+                    visitedPipes.add(newPipe);
+                    paths.offer(newPipe);
+                }
+            }
+        }
+        return visitedPipes;
+    }
 
-        switch (puzzle.get(i).charAt(j)) {
+    private Set<Coordinate> getPossibleConnectorLocationsFor(Pipe pipe) {
+        Set<Coordinate> coordinates;
+        switch (pipe.ch) {
             case V:
-                if (isCoordinateInBounds(j, i - 1)) {
-                    char charAt = puzzle.get(i - 1).charAt(j);
-                    isValidFrom1 = charAt == V || charAt == $ || charAt == F || charAt == S;
-                }
-
-                if (isCoordinateInBounds(j, i + 1)) {
-                    char charAt = puzzle.get(i + 1).charAt(j);
-                    isValidFrom2 = charAt == V || charAt == L || charAt == J || charAt == S;
-                }
-
-                if (isValidFrom1 && isValidFrom2) {
-                    pipes.putIfAbsent(coordinate, Set.of(new Coordinate(j, i - 1), new Coordinate(j, i + 1)));
-                } else {
-                    junks.add(coordinate);
-                }
+                coordinates = Set.of(new Coordinate(pipe.coordinate.getX(), pipe.coordinate.getY() - 1), new Coordinate(pipe.coordinate.getX(), pipe.coordinate.getY() + 1));
                 break;
             case H:
-                if (isCoordinateInBounds(j - 1, i)) {
-                    char charAt = puzzle.get(i).charAt(j - 1);
-                    isValidFrom1 = charAt == H || charAt == L || charAt == F || charAt == S;
-                }
-
-                if (isCoordinateInBounds(j + 1, i)) {
-                    char charAt = puzzle.get(i).charAt(j + 1);
-                    isValidFrom2 = charAt == H || charAt == J || charAt == $ || charAt == S;
-                }
-
-                if (isValidFrom1 && isValidFrom2) {
-                    pipes.putIfAbsent(coordinate, Set.of(new Coordinate(j - 1, i), new Coordinate(j + 1, i)));
-                } else {
-                    junks.add(coordinate);
-                }
+                coordinates = Set.of(new Coordinate(pipe.coordinate.getX() - 1, pipe.coordinate.getY()), new Coordinate(pipe.coordinate.getX() + 1, pipe.coordinate.getY()));
                 break;
             case L:
-                if (isCoordinateInBounds(j, i - 1)) {
-                    char charAt = puzzle.get(i - 1).charAt(j);
-                    isValidFrom1 = charAt == V || charAt == $ || charAt == F || charAt == S;
-                }
-
-                if (isCoordinateInBounds(j + 1, i)) {
-                    char charAt = puzzle.get(i).charAt(j + 1);
-                    isValidFrom2 = charAt == H || charAt == J || charAt == $ || charAt == S;
-                }
-
-                if (isValidFrom1 && isValidFrom2) {
-                    pipes.putIfAbsent(coordinate, Set.of(new Coordinate(j, i - 1), new Coordinate(j + 1, i)));
-                } else {
-                    junks.add(coordinate);
-                }
+                coordinates = Set.of(new Coordinate(pipe.coordinate.getX(), pipe.coordinate.getY() - 1), new Coordinate(pipe.coordinate.getX() + 1, pipe.coordinate.getY()));
                 break;
             case J:
-                if (isCoordinateInBounds(j, i - 1)) {
-                    char charAt = puzzle.get(i - 1).charAt(j);
-                    isValidFrom1 = charAt == V || charAt == $ || charAt == F || charAt == S;
-                }
-
-                if (isCoordinateInBounds(j - 1, i)) {
-                    char charAt = puzzle.get(i).charAt(j - 1);
-                    isValidFrom2 = charAt == H || charAt == L || charAt == F || charAt == S;
-                }
-
-                if (isValidFrom1 && isValidFrom2) {
-                    pipes.putIfAbsent(coordinate, Set.of(new Coordinate(j, i - 1), new Coordinate(j - 1, i)));
-                } else {
-                    junks.add(coordinate);
-                }
+                coordinates = Set.of(new Coordinate(pipe.coordinate.getX(), pipe.coordinate.getY() - 1), new Coordinate(pipe.coordinate.getX() - 1, pipe.coordinate.getY()));
                 break;
             case $:
-                if (isCoordinateInBounds(j, i + 1)) {
-                    char charAt = puzzle.get(i + 1).charAt(j);
-                    isValidFrom1 = charAt == V || charAt == L || charAt == J || charAt == S;
-                }
-
-                if (isCoordinateInBounds(j - 1, i)) {
-                    char charAt = puzzle.get(i).charAt(j - 1);
-                    isValidFrom2 = charAt == H || charAt == L || charAt == F || charAt == S;
-                }
-
-                if (isValidFrom1 && isValidFrom2) {
-                    pipes.putIfAbsent(coordinate, Set.of(new Coordinate(j, i + 1), new Coordinate(j - 1, i)));
-                } else {
-                    junks.add(coordinate);
-                }
+                coordinates = Set.of(new Coordinate(pipe.coordinate.getX(), pipe.coordinate.getY() + 1), new Coordinate(pipe.coordinate.getX() - 1, pipe.coordinate.getY()));
                 break;
             case F:
-                if (isCoordinateInBounds(j, i + 1)) {
-                    char charAt = puzzle.get(i + 1).charAt(j);
-                    isValidFrom1 = charAt == V || charAt == L || charAt == J || charAt == S;
-                }
-
-                if (isCoordinateInBounds(j + 1, i)) {
-                    char charAt = puzzle.get(i).charAt(j + 1);
-                    isValidFrom2 = charAt == H || charAt == J || charAt == $ || charAt == S;
-                }
-
-                if (isValidFrom1 && isValidFrom2) {
-                    pipes.putIfAbsent(coordinate, Set.of(new Coordinate(j, i + 1), new Coordinate(j + 1, i)));
-                } else {
-                    junks.add(coordinate);
-                }
-                break;
-            case S:
-                start = coordinate;
-            case G:
+                coordinates = Set.of(new Coordinate(pipe.coordinate.getX(), pipe.coordinate.getY() + 1), new Coordinate(pipe.coordinate.getX() + 1, pipe.coordinate.getY()));
                 break;
             default:
-                throw new IllegalStateException();
+                coordinates = new HashSet<>();
         }
+        return coordinates;
     }
 
-    //TODO determine exact type of start
-    private void initStart() {
-        Set<Coordinate> neighbours = new HashSet<>();
-        for (Coordinate neighbour : start.getOrthogonalAdjacentCoordinates()) {
-            Set<Coordinate> coordinates = pipes.get(neighbour);
-            if (coordinates != null) {
-                for (Coordinate coordinate : pipes.get(neighbour)) {
-                    if (coordinate.equals(start)) {
-                        neighbours.add(neighbour.copy());
-                    }
-                }
+    private boolean isValidPipe(Pipe pipe, Set<Coordinate> connectors) {
+        boolean isValid = false;
+        if (!connectors.isEmpty() && connectors.stream().allMatch(this::isCoordinateInBounds)) {
+            switch (pipe.ch) {
+                case V:
+                    isValid = connectors.stream().allMatch(coordinate -> {
+                        char ch = puzzle.get(coordinate.getY()).charAt(coordinate.getX());
+                        return (ch == V) || (coordinate.getY() < pipe.coordinate.getY() && (ch == $ || ch == F)) || (coordinate.getY() > pipe.coordinate.getY() && (ch == L || ch == J)) || ch == S;
+                    });
+                    break;
+                case H:
+                    isValid = connectors.stream().allMatch(coordinate -> {
+                        char ch = puzzle.get(coordinate.getY()).charAt(coordinate.getX());
+                        return (ch == H) || (coordinate.getX() < pipe.coordinate.getX() && (ch == L || ch == F)) || (coordinate.getX() > pipe.coordinate.getX() && (ch == J || ch == $)) || ch == S;
+                    });
+                    break;
+                case L:
+                    isValid = connectors.stream().allMatch(coordinate -> {
+                        char ch = puzzle.get(coordinate.getY()).charAt(coordinate.getX());
+                        return (coordinate.getY() < pipe.coordinate.getY() && (ch == V || ch == F || ch == $)) || (coordinate.getX() > pipe.coordinate.getX() && (ch == H || ch == J || ch == $)) || ch == S;
+                    });
+                    break;
+                case J:
+                    isValid = connectors.stream().allMatch(coordinate -> {
+                        char ch = puzzle.get(coordinate.getY()).charAt(coordinate.getX());
+                        return (coordinate.getX() < pipe.coordinate.getX() && (ch == H || ch == L || ch == F)) || (coordinate.getY() < pipe.coordinate.getY() && (ch == V || ch == F || ch == $)) || ch == S;
+                    });
+                    break;
+                case F:
+                    isValid = connectors.stream().allMatch(coordinate -> {
+                        char ch = puzzle.get(coordinate.getY()).charAt(coordinate.getX());
+                        return (coordinate.getY() > pipe.coordinate.getY() && (ch == V || ch == L || ch == J)) || (coordinate.getX() > pipe.coordinate.getX() && (ch == H || ch == J || ch == $)) || ch == S;
+                    });
+                    break;
+                case $:
+                    isValid = connectors.stream().allMatch(coordinate -> {
+                        char ch = puzzle.get(coordinate.getY()).charAt(coordinate.getX());
+                        return (coordinate.getX() < pipe.coordinate.getX() && (ch == H || ch == F || ch == L)) || (coordinate.getY() > pipe.coordinate.getY() && (ch == V || ch == L || ch == J)) || ch == S;
+                    });
+                    break;
+                case G:
+                    break;
+                default:
+                    throw new IllegalStateException();
             }
         }
-        pipes.putIfAbsent(start, Collections.unmodifiableSet(neighbours));
+        return isValid;
     }
 
     @Override
     public Integer solvePartOne() {
-        return findFarthestFrom(start);
+        return pipes.size() / 2;
     }
 
-    private int findFarthestFrom(Coordinate coordinate) {
-        Set<Coordinate> visitedCoords = new HashSet<>();
-        Deque<Path> paths = new ArrayDeque<>();
-        paths.offer(new Path(coordinate, 0));
-        int maxSteps = Integer.MIN_VALUE;
-        while (!paths.isEmpty()) {
-            Path currentPath = paths.poll();
-            Coordinate currentCoordinate = currentPath.coordinate;
-            maxSteps = Math.max(currentPath.steps, maxSteps);
-            for (Coordinate neighbour : pipes.get(currentCoordinate)) {
-                if (isCoordinateInBounds(neighbour.getX(), neighbour.getY())) {
-                    if (!visitedCoords.contains(neighbour)) {
-                        paths.offer(new Path(neighbour, currentPath.steps + 1));
-                        visitedCoords.add(neighbour);
-                    }
-                }
-            }
-        }
-        return maxSteps;
-    }
-
-    private boolean isCoordinateInBounds(int x, int y) {
-        return x < width && x >= 0 && y < height && y >= 0;
+    private boolean isCoordinateInBounds(Coordinate coordinate) {
+        return coordinate.getX() < width && coordinate.getX() >= 0 && coordinate.getY() < height && coordinate.getY() >= 0;
     }
 
     @Override
@@ -207,24 +170,23 @@ public class Day10Solver extends Solver<Integer> {
         Set<Coordinate> insidePoints = new HashSet<>();
         for (int i = 0; i < puzzle.size(); i++) {
             boolean isInside = false;
-            char prev = ' ';
+            char prev = G;
             for (int j = 0; j < puzzle.get(i).length(); j++) {
                 Coordinate coordinate = new Coordinate(j, i);
                 char curr = puzzle.get(i).charAt(j);
-                if (pipes.containsKey(coordinate)) {
-                    if (prev == ' ') {
-                        prev = curr;
+                if (pipes.contains(new Pipe(coordinate, curr))) {
+                    if (curr == S) {
+                        curr = startPipe.ch;
                     }
                     if (curr == V || (prev == F && curr == J) || (prev == L && curr == $)) {
                         isInside = !isInside;
-                        prev = ' ';
-                    } else if (prev == L && curr == J || (prev == F && curr == $)) {
-                        prev = ' ';
+                    }
+                    if (curr == L || curr == F) {
+                        prev = curr;
                     }
                 } else {
                     if (isInside) {
                         insidePoints.add(coordinate);
-                        prev = ' ';
                     }
                 }
             }
@@ -232,13 +194,25 @@ public class Day10Solver extends Solver<Integer> {
         return insidePoints.size();
     }
 
-    private static class Path {
+    public static class Pipe {
         Coordinate coordinate;
-        int steps;
+        char ch;
 
-        public Path(Coordinate coordinate, int steps) {
+        public Pipe(Coordinate coordinate, char ch) {
             this.coordinate = coordinate;
-            this.steps = steps;
+            this.ch = ch;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Pipe pipe)) return false;
+            return Objects.equals(coordinate, pipe.coordinate);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(coordinate);
         }
     }
 
