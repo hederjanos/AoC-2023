@@ -5,7 +5,9 @@ import util.common.Solver;
 import java.util.*;
 
 public class Day14Solver extends Solver<Integer> {
-
+    private static final char STAT_ROCK = '#';
+    private static final char DYN_ROCK = 'O';
+    private static final char GROUND = '.';
     private final Platform platform;
 
     public Day14Solver(String fileName) {
@@ -21,13 +23,13 @@ public class Day14Solver extends Solver<Integer> {
             for (short j = 0; j < row.length(); j++) {
                 char charAt = row.charAt(j);
                 switch (charAt) {
-                    case '#':
+                    case STAT_ROCK:
                         staticRocks.add(new Coordinate(j, i));
                         break;
-                    case 'O':
+                    case DYN_ROCK:
                         dynamicRocks.add(new Coordinate(j, i));
                         break;
-                    case '.':
+                    case GROUND:
                         break;
                     default:
                         throw new IllegalStateException();
@@ -155,11 +157,11 @@ public class Day14Solver extends Solver<Integer> {
                 for (short j = 0; j < width; j++) {
                     Coordinate coordinate = new Coordinate(j, i);
                     if (staticRocks.contains(coordinate)) {
-                        colSb.append('#');
+                        colSb.append(STAT_ROCK);
                     } else if (dynamicRocks.contains(coordinate)) {
-                        colSb.append('O');
+                        colSb.append(DYN_ROCK);
                     } else {
-                        colSb.append('.');
+                        colSb.append(GROUND);
                     }
                 }
                 rowSb.append(colSb.append("\n"));

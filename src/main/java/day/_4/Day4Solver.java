@@ -73,7 +73,7 @@ public class Day4Solver extends Solver<Integer> {
         Set<Integer> winningNums;
         Set<Integer> ownedNums;
 
-        public Card(int id, Set<Integer> winningNums, Set<Integer> ownedNums) {
+        Card(int id, Set<Integer> winningNums, Set<Integer> ownedNums) {
             this.id = id;
             this.winningNums = winningNums;
             this.ownedNums = ownedNums;

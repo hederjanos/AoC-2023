@@ -9,7 +9,6 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 public class Day11Solver extends Solver<Long> {
-
     private final Set<Coordinate> galaxies;
 
     public Day11Solver(String fileName) {
@@ -66,7 +65,7 @@ public class Day11Solver extends Solver<Long> {
         long x;
         long y;
 
-        public Coordinate(long x, long y) {
+        Coordinate(long x, long y) {
             this.x = x;
             this.y = y;
         }

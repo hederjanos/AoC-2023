@@ -130,5 +130,4 @@ public class Day2Solver extends Solver<Integer> {
     private enum Color {
         red, green, blue;
     }
-
 }

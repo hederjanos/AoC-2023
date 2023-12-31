@@ -86,7 +86,7 @@ public class Day6Solver extends Solver<Long> {
         long time;
         long bestDistance;
 
-        public RaceInfo(long time, long bestDistance) {
+        RaceInfo(long time, long bestDistance) {
             this.time = time;
             this.bestDistance = bestDistance;
         }

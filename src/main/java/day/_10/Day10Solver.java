@@ -198,7 +198,7 @@ public class Day10Solver extends Solver<Integer> {
         Coordinate coordinate;
         char ch;
 
-        public Pipe(Coordinate coordinate, char ch) {
+        Pipe(Coordinate coordinate, char ch) {
             this.coordinate = coordinate;
             this.ch = ch;
         }
@@ -216,5 +216,4 @@ public class Day10Solver extends Solver<Integer> {
             return Objects.hash(coordinate);
         }
     }
-
 }

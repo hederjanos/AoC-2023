@@ -87,7 +87,7 @@ public class Day5Solver extends Solver<Long> {
         String name;
         Map<Range, Range> rangeMap = new HashMap<>();
 
-        public RangeMap(String name) {
+        RangeMap(String name) {
             this.name = name;
         }
 
@@ -113,7 +113,7 @@ public class Day5Solver extends Solver<Long> {
         long start;
         long end;
 
-        public Range(long start, long end) {
+        Range(long start, long end) {
             this.start = start;
             this.end = end;
         }

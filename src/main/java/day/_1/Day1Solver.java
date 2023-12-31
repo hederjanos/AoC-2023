@@ -10,13 +10,13 @@ public class Day1Solver extends Solver<Integer> {
     private enum Digit {
         one(1), two(2), three(3), four(4), five(5), six(6), seven(7), eight(8), nine(9);
 
-        private final int value;
+        final int value;
 
         Digit(int value) {
             this.value = value;
         }
 
-        public int getValue() {
+        int getValue() {
             return value;
         }
     }

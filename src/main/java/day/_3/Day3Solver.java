@@ -65,7 +65,7 @@ public class Day3Solver extends Solver<Integer> {
         Set<PartNumber> partNumbers;
         Set<Symbol> symbols;
 
-        public EngineSchematic(int height, int width, Set<PartNumber> partNumbers, Set<Symbol> symbols) {
+        EngineSchematic(int height, int width, Set<PartNumber> partNumbers, Set<Symbol> symbols) {
             this.width = width;
             this.height = height;
             this.partNumbers = partNumbers;
@@ -165,7 +165,7 @@ public class Day3Solver extends Solver<Integer> {
         Set<Symbol> symbols;
         int value;
 
-        public PartNumber(Set<Symbol> symbols, int value) {
+        PartNumber(Set<Symbol> symbols, int value) {
             this.symbols = symbols;
             this.value = value;
         }
@@ -190,7 +190,7 @@ public class Day3Solver extends Solver<Integer> {
         char symbol;
         Coordinate coordinate;
 
-        public Symbol(char symbol, Coordinate coordinate) {
+        Symbol(char symbol, Coordinate coordinate) {
             this.symbol = symbol;
             this.coordinate = coordinate;
         }

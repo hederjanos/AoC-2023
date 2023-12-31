@@ -113,7 +113,7 @@ public class Day8Solver extends Solver<Long> {
         String left;
         String right;
 
-        public Node(String label, String left, String right) {
+        Node(String label, String left, String right) {
             this.label = label;
             this.left = left;
             this.right = right;
@@ -126,7 +126,7 @@ public class Day8Solver extends Solver<Long> {
         int steps;
         boolean target;
 
-        public Route(String start, String end, int steps, boolean target) {
+        Route(String start, String end, int steps, boolean target) {
             this.start = start;
             this.end = end;
             this.steps = steps;
