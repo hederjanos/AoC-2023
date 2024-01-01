@@ -36,27 +36,27 @@ public class Day16Solver extends Solver<Integer> {
 
     @Override
     public Integer solvePartOne() {
+        return scanFrom(new Coordinate(0, 0), Direction.RIGHT);
+    }
+
+    private int scanFrom(Coordinate initCoordinate, Direction heading) {
         Set<Beam> visited = new HashSet<>();
-
-        Coordinate initCoordinate = new Coordinate(0, 0);
-        Direction heading = Direction.RIGHT;
+        visited.add(new Beam(initCoordinate, heading));
+        Set<Beam> initBeams;
         MirrorType mirror = mirrors.get(initCoordinate);
-
-        Beam initBeam;
         if (mirror != null) {
-            initBeam = getPossibleBeams(mirror, initCoordinate, heading).stream().findFirst().get();
-            visited.add(initBeam);
+            initBeams = getPossibleBeams(mirror, initCoordinate, heading);
+            visited.addAll(initBeams);
         } else {
-            initBeam = new Beam(initCoordinate, heading);
+            initBeams = Set.of(new Beam(initCoordinate, heading));
         }
-
-        scanBeamPath(initBeam, visited);
+        scanBeamPath(initBeams, visited);
         return visited.stream().map(beam -> beam.coordinate).collect(Collectors.toSet()).size();
     }
 
-    private void scanBeamPath(Beam initBeam, Set<Beam> visited) {
+    private void scanBeamPath(Set<Beam> initBeams, Set<Beam> visited) {
         Deque<Beam> beamDeque = new ArrayDeque<>();
-        beamDeque.offer(initBeam);
+        initBeams.forEach(beamDeque::offer);
         while (!beamDeque.isEmpty()) {
             Beam poll = beamDeque.poll();
             Coordinate nextLocation = poll.coordinate.moveByDirection(poll.heading);
@@ -165,7 +165,28 @@ public class Day16Solver extends Solver<Integer> {
 
     @Override
     public Integer solvePartTwo() {
-        return null;
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (i == 0 || j == 0 || i == width - 1 || j == height - 1) {
+                    Coordinate initCoordinate = new Coordinate(i, j);
+                    Direction heading;
+                    if (i == 0) {
+                        heading = Direction.RIGHT;
+                    } else if (i == width - 1) {
+                        heading = Direction.LEFT;
+                    } else if (j == 0) {
+                        heading = Direction.DOWN;
+                    } else if (j == height - 1) {
+                        heading = Direction.UP;
+                    } else {
+                        continue;
+                    }
+                    max = Math.max(max, scanFrom(initCoordinate, heading));
+                }
+            }
+        }
+        return max;
     }
 
     private static class Beam {
@@ -175,10 +196,6 @@ public class Day16Solver extends Solver<Integer> {
         Beam(Coordinate coordinate, Direction heading) {
             this.coordinate = coordinate;
             this.heading = heading;
-        }
-
-        Beam move(Direction direction) {
-            return new Beam(coordinate.moveByDirection(direction), direction);
         }
 
         @Override
