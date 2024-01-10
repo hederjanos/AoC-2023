@@ -17,5 +17,6 @@ public class Day18SolverTest {
     @Test
     public void testPartTwo() {
         solver = new Day18Solver("day18-test.txt");
+        assertEquals(952408144115L, solver.solvePartTwo());
     }
 }
