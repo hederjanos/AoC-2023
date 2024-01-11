@@ -1,19 +1,21 @@
 package day._19;
 
-import java.lang.Integer;
 import org.junit.jupiter.api.Test;
 import util.common.Solver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class Day19SolverTest {
-  private Solver<Integer> solver;
+    private Solver<Integer> solver;
 
-  @Test
-  public void testPartOne() {
-    solver = new Day19Solver("day19-test.txt");
-  }
+    @Test
+    public void testPartOne() {
+        solver = new Day19Solver("day19-test.txt");
+        assertEquals(19114, solver.solvePartOne());
+    }
 
-  @Test
-  public void testPartTwo() {
-    solver = new Day19Solver("day19-test.txt");
-  }
+    @Test
+    public void testPartTwo() {
+        solver = new Day19Solver("day19-test.txt");
+    }
 }
