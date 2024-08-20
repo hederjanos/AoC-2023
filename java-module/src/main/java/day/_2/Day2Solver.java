@@ -2,132 +2,67 @@ package day._2;
 
 import util.common.Solver;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Day2Solver extends Solver<Integer> {
-    private final Pattern gamePattern = Pattern.compile("^Game\\s(\\d+):(.+)$");
-    private final Pattern cubeStatePattern = Pattern.compile("^(\\d+)\\s(\\w+)+$");
-    private final String SUBSET_SEPARATOR = ";";
-    private final String CUBE_STATE_SEPARATOR = ",";
-    private final Set<CubeState> config = Set.of(new CubeState(Color.red, 12), new CubeState(Color.green, 13), new CubeState(Color.blue, 14));
-
     public Day2Solver(String filename) {
         super(filename);
     }
 
     @Override
     public Integer solvePartOne() {
-        return puzzle.stream()
-                .map(this::parseAGame)
-                .filter(gameDetails -> gameDetails.isValid(config))
-                .mapToInt(g -> g.gameId)
-                .sum();
-    }
-
-    private GameDetails parseAGame(String line) {
-        int gameId = 0;
-        String subsets = "";
-
-        Matcher gameMatcher = gamePattern.matcher(line);
-        while (gameMatcher.find()) {
-            gameId = Integer.parseInt(gameMatcher.group(1));
-            subsets = gameMatcher.group(2);
-        }
-
-        String[] sets = subsets.split(SUBSET_SEPARATOR);
-        Set<CubeSubSet> cubeSubSets = new HashSet<>();
-        for (String set : sets) {
-            String[] states = set.split(CUBE_STATE_SEPARATOR);
-            Set<CubeState> cubeStates = new HashSet<>();
-            for (String state : states) {
-                String strip = state.strip();
-                Matcher stateMatcher = cubeStatePattern.matcher(strip);
-                while (stateMatcher.find()) {
-                    cubeStates.add(new CubeState(Color.valueOf(stateMatcher.group(2)), Integer.parseInt(stateMatcher.group(1))));
-                }
-            }
-            cubeSubSets.add(new CubeSubSet(cubeStates));
-        }
-        return new GameDetails(gameId, cubeSubSets);
+        Map<String, Integer> config = Map.of("red", 12, "green", 13, "blue", 14);
+        return puzzle.stream().map(Game::from).filter(game -> game.isValid(config)).mapToInt(Game::gameId).sum();
     }
 
     @Override
     public Integer solvePartTwo() {
-        return puzzle.stream()
-                .map(this::parseAGame)
-                .mapToInt(GameDetails::getPower)
-                .sum();
+        return puzzle.stream().map(Game::from).mapToInt(Game::getPower).sum();
     }
 
-    private static class GameDetails {
-        int gameId;
-        Set<CubeSubSet> subsets;
+    private record Game(int gameId, Map<String, Integer> colorMap) {
+        static Game from(String line) {
+            Pattern gamePattern = Pattern.compile("^Game\\s(\\d+):(.+)$");
+            Pattern cubeStatePattern = Pattern.compile("^(\\d+)\\s(\\w+)$");
 
-        GameDetails(int gameId, Set<CubeSubSet> subsets) {
-            this.gameId = gameId;
-            this.subsets = subsets;
-        }
+            int gameId = 0;
+            String subsets = "";
 
-        boolean isValid(Set<CubeState> config) {
-            for (CubeSubSet subset : subsets) {
-                for (CubeState state : subset.states) {
-                    for (CubeState configState : config) {
-                        if (configState.color.equals(state.color) && configState.count < state.count) {
-                            return false;
-                        }
+            Matcher gameMatcher = gamePattern.matcher(line);
+            if (gameMatcher.find()) {
+                gameId = Integer.parseInt(gameMatcher.group(1));
+                subsets = gameMatcher.group(2);
+            }
+
+            Map<String, Integer> colorCounts = new HashMap<>();
+            String[] sets = subsets.split(";");
+            for (String set : sets) {
+                String[] states = set.split(",");
+                for (String state : states) {
+                    Matcher stateMatcher = cubeStatePattern.matcher(state.trim());
+                    if (stateMatcher.find()) {
+                        int count = Integer.parseInt(stateMatcher.group(1));
+                        String color = stateMatcher.group(2);
+                        colorCounts.compute(color, (col, oldCount) -> oldCount == null ? count : Math.max(count, oldCount));
                     }
                 }
             }
-            return true;
+            return new Game(gameId, colorCounts);
+        }
+
+        boolean isValid(Map<String, Integer> config) {
+            return colorMap.entrySet().stream()
+                    .allMatch(entry -> config.getOrDefault(entry.getKey(), 0) >= entry.getValue());
         }
 
         int getPower() {
-            int maxRed = 1;
-            int maxGreen = 1;
-            int maxBlue = 1;
-            for (CubeSubSet subset : subsets) {
-                for (CubeState state : subset.states) {
-                    switch (state.color) {
-                        case red:
-                            maxRed = Math.max(maxRed, state.count);
-                            break;
-                        case green:
-                            maxGreen = Math.max(maxGreen, state.count);
-                            break;
-                        case blue:
-                            maxBlue = Math.max(maxBlue, state.count);
-                            break;
-                        default:
-                            System.out.println("Hohohohoho");
-                    }
-                }
-            }
-            return maxRed * maxGreen * maxBlue;
+            int redCount = colorMap.getOrDefault("red", 1);
+            int greenCount = colorMap.getOrDefault("green", 1);
+            int blueCount = colorMap.getOrDefault("blue", 1);
+            return redCount * greenCount * blueCount;
         }
-    }
-
-    private static class CubeSubSet {
-        Set<CubeState> states;
-
-        CubeSubSet(Set<CubeState> states) {
-            this.states = states;
-        }
-    }
-
-    private static class CubeState {
-        Color color;
-        int count;
-
-        CubeState(Color color, int count) {
-            this.color = color;
-            this.count = count;
-        }
-    }
-
-    private enum Color {
-        red, green, blue;
     }
 }
