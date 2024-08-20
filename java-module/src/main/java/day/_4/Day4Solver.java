@@ -9,43 +9,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Day4Solver extends Solver<Integer> {
-    private final Pattern cardPattern = Pattern.compile("^Card\\s+(\\d+):");
-    private final String BAR = "\\|";
-    private final String NUMBER = "\\d+";
     private final Card[] cards;
 
     public Day4Solver(String fileName) {
         super(fileName);
-        cards = new Card[puzzle.size()];
-        for (int i = 0; i < puzzle.size(); i++) {
-            String line = puzzle.get(i);
-            cards[i] = parseACard(line);
-        }
-    }
-
-    private Card parseACard(String line) {
-        Matcher matcher = cardPattern.matcher(line);
-        int cardId = 0;
-        if (matcher.find()) {
-            cardId = Integer.parseInt(matcher.group(1));
-        }
-        Set<Integer> winningNums = null;
-        Set<Integer> ownedNums = null;
-        String[] groups = line.replaceFirst(cardPattern.pattern(), "").split(BAR);
-        for (int i = 0; i < groups.length; i++) {
-            String group = groups[i];
-            Set<Integer> integers = new HashSet<>();
-            Matcher matcher1 = Pattern.compile(NUMBER).matcher(group);
-            while (matcher1.find()) {
-                integers.add(Integer.parseInt(matcher1.group()));
-            }
-            if (i == 0) {
-                winningNums = integers;
-            } else {
-                ownedNums = integers;
-            }
-        }
-        return new Card(cardId, winningNums, ownedNums);
+        cards = puzzle.stream().map(Card::from).toArray(Card[]::new);
     }
 
     @Override
@@ -58,29 +26,33 @@ public class Day4Solver extends Solver<Integer> {
         int[] counter = new int[cards.length];
         Arrays.fill(counter, 1);
         for (int i = 0; i < counter.length; i++) {
-            int count = counter[i];
-            for (int j = 0; j < count; j++) {
-                for (int k = 1; k <= cards[i].getNumberOfMatches(); k++) {
-                    counter[i + k] += 1;
+            int matches = cards[i].getNumberOfMatches();
+            for (int j = 1; j <= matches; j++) {
+                if (i + j < counter.length) {
+                    counter[i + j] += counter[i];
                 }
             }
         }
         return Arrays.stream(counter).sum();
     }
 
-    private static class Card {
-        int id;
-        Set<Integer> winningNums;
-        Set<Integer> ownedNums;
+    private record Card(Set<Integer> winningNums, Set<Integer> ownedNums) {
+        static Card from(String line) {
+            String[] numGroups = line.split(":", 2)[1].split("\\|", 2);
+            return new Card(extractInts(numGroups[0]), extractInts(numGroups[1]));
+        }
 
-        Card(int id, Set<Integer> winningNums, Set<Integer> ownedNums) {
-            this.id = id;
-            this.winningNums = winningNums;
-            this.ownedNums = ownedNums;
+        static Set<Integer> extractInts(String numbers) {
+            Matcher numberMatcher = Pattern.compile("\\d+").matcher(numbers);
+            Set<Integer> integers = new HashSet<>();
+            while (numberMatcher.find()) {
+                integers.add(Integer.parseInt(numberMatcher.group()));
+            }
+            return integers;
         }
 
         int getNumberOfMatches() {
-            return (int) winningNums.stream().filter(n -> ownedNums.contains(n)).count();
+            return (int) winningNums.stream().filter(ownedNums::contains).count();
         }
     }
 }
