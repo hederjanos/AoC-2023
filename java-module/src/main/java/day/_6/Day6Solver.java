@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Day6Solver extends Solver<Long> {
-    private final Pattern numPattern = Pattern.compile("\\d+");
     private final List<RaceInfo> raceInfoList;
 
     public Day6Solver(String fileName) {
@@ -29,7 +28,7 @@ public class Day6Solver extends Solver<Long> {
 
     private List<Integer> extractIntegers(String input) {
         List<Integer> integers = new ArrayList<>();
-        Matcher matcher = numPattern.matcher(input);
+        Matcher matcher = Pattern.compile("\\d+").matcher(input);
         while (matcher.find()) {
             integers.add(Integer.parseInt(matcher.group()));
         }
@@ -38,31 +37,26 @@ public class Day6Solver extends Solver<Long> {
 
     @Override
     public Long solvePartOne() {
-        return raceInfoList.stream().mapToLong(this::getNumberOfWaysToBeatRecord).reduce(1, (a, b) -> a * b);
+        return raceInfoList.stream().mapToLong(this::getNumberOfWaysToBeatRecord).reduce(1L, (a, b) -> a * b);
     }
 
     private long getNumberOfWaysToBeatRecord(RaceInfo raceInfo) {
-        double a = 1, b = raceInfo.time, c = raceInfo.bestDistance;
-        double root1, root2;
+        double a = 1.0, b = raceInfo.time, c = raceInfo.bestDistance;
         double discriminant = b * b - 4 * a * c;
 
-        if (discriminant > 0) {
-            root1 = (-b + Math.sqrt(discriminant)) / (2 * a) * -1;
-            if (root1 == (int) root1) {
-                root1 += 1;
-            } else {
-                root1 = Math.ceil(root1);
-            }
-            root2 = (-b - Math.sqrt(discriminant)) / (2 * a) * -1;
-            if (root2 == (int) root2) {
-                root2 -= 1;
-            } else {
-                root2 = Math.floor(root2);
-            }
-            return (long) (root2 - root1 + 1);
-        } else {
-            throw new IllegalStateException();
+        if (discriminant < 0) {
+            throw new IllegalStateException("Discriminant is negative, no real roots exist.");
         }
+
+        double sqrtDiscriminant = Math.sqrt(discriminant);
+
+        double root1 = (-b + sqrtDiscriminant) / (2 * a) * -1;
+        double root2 = (-b - sqrtDiscriminant) / (2 * a) * -1;
+
+        root1 = root1 == (int) root1 ? root1 + 1 : Math.ceil(root1);
+        root2 = root2 == (int) root2 ? root2 - 1 : Math.floor(root2);
+
+        return (long) (root2 - root1 + 1);
     }
 
     @Override
@@ -82,13 +76,6 @@ public class Day6Solver extends Solver<Long> {
                 .collect(Collectors.joining("")));
     }
 
-    private static class RaceInfo {
-        long time;
-        long bestDistance;
-
-        RaceInfo(long time, long bestDistance) {
-            this.time = time;
-            this.bestDistance = bestDistance;
-        }
+    private record RaceInfo(long time, long bestDistance) {
     }
 }

@@ -7,7 +7,7 @@ fun main() {
 class Day5SolverK(
     fileName: String,
 ) : Solver<Long>(fileName) {
-    private val seeds: List<Long> = "\\d+".toRegex().findAll(puzzle[0]).map { it.value.toLong() }.toList()
+    private val seeds: List<Long> = "\\d+".toRegex().findAll(puzzle.first()).map { it.value.toLong() }.toList()
     private val rangeMaps: RangeMaps = RangeMaps.from(puzzle)
 
     override fun solvePartOne(): Long = seeds.minOf { rangeMaps.getLocationFrom(it) }
@@ -37,9 +37,9 @@ class Day5SolverK(
                         rangeMap?.let { rangeMaps.add(it) }
                         continue
                     }
-                    val alphabetic = puzzle[i][0].isLetter()
+                    val alphabetic = puzzle[i].first().isLetter()
                     if (alphabetic) {
-                        rangeMap = RangeMap(puzzle[i].split(" ")[0])
+                        rangeMap = RangeMap(puzzle[i].split(" ").first())
                     } else {
                         val nums = puzzle[i].split(" ").map { it.toLong() }
                         val (destStart, srcStart, range) = nums
