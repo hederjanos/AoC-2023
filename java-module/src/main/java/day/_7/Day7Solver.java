@@ -15,32 +15,114 @@ public class Day7Solver extends Solver<Integer> {
     }
 
     private List<Hand> parseHands() {
-        return puzzle.stream().map(this::parseHand).sorted().collect(Collectors.toList());
-    }
-
-    private Hand parseHand(String s) {
-        String[] hand = s.split(" ");
-        String cards = hand[0];
-        int bid = Integer.parseInt(hand[1]);
-        List<Card> cardList = IntStream.range(0, cards.length())
-                .mapToObj(i -> Card.getCardByLabel(cards.charAt(i)))
-                .collect(Collectors.toList());
-        return new Hand(cardList, bid);
+        return puzzle.stream().map(Hand::from).collect(Collectors.toList());
     }
 
     @Override
     public Integer solvePartOne() {
-        return processHands(handList);
+        Collections.sort(handList);
+        return calculateScore(handList);
     }
 
-    private int processHands(List<Hand> hands) {
+    private int calculateScore(List<Hand> hands) {
         return IntStream.range(0, hands.size()).boxed().mapToInt(i -> (i + 1) * hands.get(i).bid).sum();
     }
 
     @Override
     public Integer solvePartTwo() {
-        List<Hand> reOrderedHands = handList.stream().sorted(Hand.specialComparator).collect(Collectors.toList());
-        return processHands(reOrderedHands);
+        List<Hand> reOrderedHands = handList.stream().sorted(Hand.specialComparator).toList();
+        return calculateScore(reOrderedHands);
+    }
+
+    record Hand(List<Card> cards, int bid) implements Comparable<Hand> {
+        final static Comparator<Hand> specialComparator = (hand1, hand2) -> hand1.compare(hand2, true);
+
+        static Hand from(String line) {
+            String[] hand = line.split(" ");
+            List<Card> cardList = hand[0].chars().mapToObj(c -> Card.from((char) c)).toList();
+            int bid = Integer.parseInt(hand[1]);
+            return new Hand(cardList, bid);
+        }
+
+        public int compareTo(Hand hand) {
+            return this.compare(hand, false);
+        }
+
+        int compare(Hand other, boolean checkJoker) {
+            HandType thisType = this.getType(checkJoker);
+            HandType otherType = other.getType(checkJoker);
+
+            if (thisType != otherType) {
+                return thisType.compareTo(otherType);
+            }
+
+            for (int i = 0; i < cards.size(); i++) {
+                Card thisCard = cards.get(i);
+                Card otherCard = other.cards.get(i);
+
+                if (thisCard != otherCard) {
+                    if (checkJoker) {
+                        if (thisCard == Card.J) {
+                            return -1;
+                        }
+                        if (otherCard == Card.J) {
+                            return 1;
+                        }
+                    }
+                    return thisCard.compareTo(otherCard);
+                }
+            }
+            return 0;
+        }
+
+        HandType getType(boolean checkJoker) {
+            Set<Card> uniqueCards = new HashSet<>(cards);
+            int uniqueCount = uniqueCards.size();
+
+            HandType type = switch (uniqueCount) {
+                case 5 -> HandType.HIGH_CARD;
+                case 4 -> HandType.ONE_PAIR;
+                case 3 -> countPairs() == 2 ? HandType.TWO_PAIR : HandType.THREE_OF_A_KIND;
+                case 2 -> countPairs() == 1 ? HandType.FULL_HOUSE : HandType.FOUR_OF_A_KIND;
+                default -> HandType.FIVE_OF_A_KIND;
+            };
+
+            if (checkJoker && cards.contains(Card.J)) {
+                type = modifyTypeForJoker(type);
+            }
+
+            return type;
+        }
+
+        long countPairs() {
+            return groupCards().values().stream().filter(list -> list.size() == 2).count();
+        }
+
+        Map<Character, List<Card>> groupCards() {
+            return cards.stream().collect(Collectors.groupingBy(card -> card.label));
+        }
+
+        HandType modifyTypeForJoker(HandType type) {
+            return switch (type) {
+                case HIGH_CARD -> HandType.ONE_PAIR;
+                case ONE_PAIR -> HandType.THREE_OF_A_KIND;
+                case TWO_PAIR -> hasJokerInPairs() ? HandType.FOUR_OF_A_KIND : HandType.FULL_HOUSE;
+                case FULL_HOUSE, FOUR_OF_A_KIND -> HandType.FIVE_OF_A_KIND;
+                case THREE_OF_A_KIND -> HandType.FOUR_OF_A_KIND;
+                default -> type;
+            };
+        }
+
+        boolean hasJokerInPairs() {
+            Map<Character, List<Card>> cardGroups = groupCards();
+            return cardGroups.entrySet().stream()
+                    .filter(entry -> entry.getValue().size() == 2)
+                    .anyMatch(entry -> entry.getKey() == Card.J.label);
+        }
+    }
+
+    private enum HandType {
+        HIGH_CARD, ONE_PAIR, TWO_PAIR, THREE_OF_A_KIND, FULL_HOUSE, FOUR_OF_A_KIND, FIVE_OF_A_KIND
     }
 
     private enum Card {
@@ -53,116 +135,11 @@ public class Day7Solver extends Solver<Integer> {
             this.label = label;
         }
 
-        static Card getCardByLabel(char label) {
-            return Arrays.stream(Card.values()).filter(card -> card.label == label).findFirst().get();
+        static Card from(char label) {
+            return Arrays.stream(Card.values())
+                    .filter(card -> card.label == label)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Illegal card label: " + label));
         }
-    }
-
-    private static class Hand implements Comparable<Hand> {
-        final static Comparator<Hand> specialComparator = (hand1, hand2) -> hand1.compare(hand2, true);
-        List<Card> cards;
-        int bid;
-
-        Hand(List<Card> cards, int bid) {
-            this.cards = cards;
-            this.bid = bid;
-        }
-
-        @Override
-        public int compareTo(Hand hand) {
-            return this.compare(hand, false);
-        }
-
-        int compare(Hand hand, boolean checkJoker) {
-            HandType type = this.getType(checkJoker);
-            HandType otherType = hand.getType(checkJoker);
-
-            if (type != otherType) {
-                return Integer.compare(type.ordinal(), otherType.ordinal());
-            } else {
-                List<Card> cards1 = this.cards;
-                List<Card> cards2 = hand.cards;
-
-                int i = 0;
-                while (i < cards1.size()) {
-                    char label1 = cards1.get(i).label;
-                    char label2 = cards2.get(i).label;
-
-                    if (label1 != label2) {
-                        if (checkJoker) {
-                            if (label1 == Card.J.label) {
-                                return -1;
-                            } else if (label2 == Card.J.label) {
-                                return 1;
-                            }
-                        }
-                        return Integer.compare(cards1.get(i).ordinal(), cards2.get(i).ordinal());
-                    }
-                    i++;
-                }
-                return 0;
-            }
-        }
-
-        HandType getType(boolean checkJoker) {
-            HandType handType;
-            Set<Card> cardSet = new HashSet<>(cards);
-            if (cardSet.size() == cards.size()) {
-                handType = HandType.HIGH_CARD;
-            } else if (cardSet.size() == 4) {
-                handType = HandType.ONE_PAIR;
-            } else if (cardSet.size() == 3) {
-                long count = groupCards().values().stream().filter(list -> list.size() == 2).count();
-                handType = count == 2 ? HandType.TWO_PAIR : HandType.THREE_OF_A_KIND;
-            } else if (cardSet.size() == 2) {
-                long count = groupCards().values().stream().filter(list -> list.size() == 2).count();
-                handType = count == 1 ? HandType.FULL_HOUSE : HandType.FOUR_OF_A_KIND;
-            } else {
-                handType = HandType.FIVE_OF_A_KIND;
-            }
-            if (checkJoker && cards.contains(Card.J)) {
-                handType = modifyType(handType);
-            }
-            return handType;
-        }
-
-        private HandType modifyType(HandType handType) {
-            switch (handType) {
-                case HIGH_CARD:
-                    handType = HandType.ONE_PAIR;
-                    break;
-                case ONE_PAIR:
-                    handType = HandType.THREE_OF_A_KIND;
-                    break;
-                case TWO_PAIR:
-                    Map<Character, List<Card>> cardGroups = groupCards();
-                    List<Character> pairs = cardGroups.keySet().stream()
-                            .filter(key -> cardGroups.get(key).size() == 2)
-                            .collect(Collectors.toList());
-                    if (pairs.stream().anyMatch(character -> character.equals(Card.J.label))) {
-                        handType = HandType.FOUR_OF_A_KIND;
-                    } else {
-                        handType = HandType.FULL_HOUSE;
-                    }
-                    break;
-                case FULL_HOUSE:
-                case FOUR_OF_A_KIND:
-                    handType = HandType.FIVE_OF_A_KIND;
-                    break;
-                case THREE_OF_A_KIND:
-                    handType = HandType.FOUR_OF_A_KIND;
-                    break;
-                default:
-            }
-            return handType;
-        }
-
-        Map<Character, List<Card>> groupCards() {
-            return cards.stream().collect(Collectors.groupingBy(card -> card.label));
-        }
-    }
-
-    private enum HandType {
-        HIGH_CARD, ONE_PAIR, TWO_PAIR, THREE_OF_A_KIND, FULL_HOUSE, FOUR_OF_A_KIND, FIVE_OF_A_KIND
     }
 }
