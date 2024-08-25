@@ -4,6 +4,7 @@ import util.common.Solver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,24 +33,24 @@ public class Day9Solver extends Solver<Long> {
     }
 
     private long processHistory(List<Long> history) {
-        return getCache(history)
+        return calculateDiffLists(history)
                 .stream()
                 .mapToLong(nums -> nums.get(nums.size() - 1))
                 .sum();
     }
 
-    private List<List<Long>> getCache(List<Long> history) {
-        List<List<Long>> cache = new ArrayList<>();
-        cache.add(history);
+    private List<List<Long>> calculateDiffLists(List<Long> history) {
+        List<List<Long>> diffLists = new ArrayList<>();
+        diffLists.add(history);
         while (!isAllZero(history)) {
             List<Long> diffs = new ArrayList<>();
             for (int i = 1; i < history.size(); i++) {
                 diffs.add(history.get(i) - history.get(i - 1));
             }
-            cache.add(diffs);
+            diffLists.add(diffs);
             history = diffs;
         }
-        return cache;
+        return diffLists;
     }
 
     private boolean isAllZero(List<Long> history) {
@@ -58,16 +59,13 @@ public class Day9Solver extends Solver<Long> {
 
     @Override
     public Long solvePartTwo() {
-       return histories.stream().mapToLong(this::processHistory2).sum();
-    }
-
-    private long processHistory2(List<Long> history) {
-        List<List<Long>> cache = getCache(history);
-        Long first = cache.get(cache.size() - 1).get(0);
-        for (int i = cache.size() - 1; i > 0; i--) {
-            Long prevFirst = cache.get(i - 1).get(0);
-            first = prevFirst - first;
-        }
-        return first;
+        return histories.stream()
+                .map(history -> {
+                    List<Long> copy = new ArrayList<>(history);
+                    Collections.reverse(copy);
+                    return copy;
+                })
+                .mapToLong(this::processHistory)
+                .sum();
     }
 }
