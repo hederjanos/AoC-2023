@@ -3,7 +3,6 @@ package day._5;
 import util.common.Solver;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -19,37 +18,37 @@ public class Day5Solver extends Solver<Long> {
     }
 
     private List<Long> initSeeds() {
-        List<Long> seeds = new ArrayList<>();
-        Matcher matcher = Pattern.compile("\\d+").matcher(puzzle.get(0));
-        while (matcher.find()) {
-            seeds.add(Long.parseLong(matcher.group()));
-        }
-        return seeds;
+        return Pattern.compile("\\d+").matcher(puzzle.getFirst()).results()
+                .map(r -> Long.parseLong(r.group()))
+                .toList();
     }
 
     @Override
     public Long solvePartOne() {
-        return seeds.stream().mapToLong(rangeMaps::getLocationFrom).min().getAsLong();
+        return seeds.stream()
+                .mapToLong(rangeMaps::getLocationFrom)
+                .min()
+                .orElseThrow();
     }
 
     @Override
     public Long solvePartTwo() {
         RangeMaps reversedMaps = rangeMaps.reverse();
 
-        List<Range> ranges = IntStream.range(0, seeds.size() - 1)
+        List<Range> seedRanges = IntStream.range(0, seeds.size() - 1)
                 .filter(j -> j % 2 == 0)
                 .mapToObj(j -> new Range(seeds.get(j), seeds.get(j) + seeds.get(j + 1) - 1))
                 .toList();
 
-        long testSrc;
-        for (testSrc = 0; ; testSrc++) {
-            long dest = reversedMaps.getLocationFrom(testSrc);
-            Optional<Range> found = ranges.stream().filter(r -> r.getDiffFromStart(dest) > -1).findFirst();
-            if (found.isPresent()) {
-                break;
+        for (long testLocation = 0; ; testLocation++) {
+            long mappedSeed = reversedMaps.getLocationFrom(testLocation);
+
+            for (Range range : seedRanges) {
+                if (range.contains(mappedSeed)) {
+                    return testLocation;
+                }
             }
         }
-        return testSrc;
     }
 
     private record RangeMaps(List<RangeMap> rangeMaps) {
@@ -70,7 +69,7 @@ public class Day5Solver extends Solver<Long> {
                     long destStart = Long.parseLong(nums[0]);
                     long srcStart = Long.parseLong(nums[1]);
                     long range = Long.parseLong(nums[2]);
-                    rangeMap.addRange(new Range(srcStart, srcStart + range - 1), new Range(destStart, destStart + range - 1));
+                    rangeMap.addRangePair(new Range(srcStart, srcStart + range - 1), new Range(destStart, destStart + range - 1));
                 }
                 if (i == puzzle.size() - 1) {
                     rangeMaps.add(rangeMap);
@@ -79,14 +78,12 @@ public class Day5Solver extends Solver<Long> {
             return new RangeMaps(rangeMaps);
         }
 
-        long getLocationFrom(Long src) {
-            return rangeMaps.stream()
-                    .reduce(src,
-                            (dest, rangeMap) ->
-                                    rangeMap.findRangePair(dest)
-                                            .map(pair -> rangeMap.getDestination(pair, dest))
-                                            .orElse(dest),
-                            (a, b) -> b);
+        long getLocationFrom(long src) {
+            long current = src;
+            for (RangeMap map : rangeMaps) {
+                current = map.getDestination(current);
+            }
+            return current;
         }
 
         RangeMaps reverse() {
@@ -95,7 +92,7 @@ public class Day5Solver extends Solver<Long> {
             List<RangeMap> flippedMaps = reversedMaps.stream()
                     .map(rangeMap -> {
                         RangeMap newRangeMap = new RangeMap(rangeMap.name);
-                        rangeMap.rangeMap.forEach((k, v) -> newRangeMap.addRange(v, k));
+                        rangeMap.rangePairs.forEach(pair -> newRangeMap.addRangePair(pair.dest, pair.src));
                         return newRangeMap;
                     })
                     .collect(Collectors.toList());
@@ -105,32 +102,34 @@ public class Day5Solver extends Solver<Long> {
 
     private static class RangeMap {
         private final String name;
-        private final Map<Range, Range> rangeMap = new HashMap<>();
+
+        private final List<RangePair> rangePairs = new ArrayList<>();
 
         RangeMap(String name) {
             this.name = name;
         }
 
-        void addRange(Range src, Range dest) {
-            rangeMap.put(src, dest);
+        void addRangePair(Range src, Range dest) {
+            rangePairs.add(new RangePair(src, dest));
         }
 
-        Optional<Map.Entry<Range, Range>> findRangePair(long number) {
-            return rangeMap.entrySet().stream()
-                    .filter(entry -> entry.getKey().getDiffFromStart(number) > -1)
-                    .findFirst();
-        }
-
-        long getDestination(Map.Entry<Range, Range> rangePair, long number) {
-            Range src = rangePair.getKey();
-            Range dest = rangePair.getValue();
-            return dest.start + src.getDiffFromStart(number);
+        long getDestination(long number) {
+            for (RangePair pair : rangePairs) {
+                if (pair.src().contains(number)) {
+                    long diff = number - pair.src().start();
+                    return pair.dest().start() + diff;
+                }
+            }
+            return number;
         }
     }
 
+    private record RangePair(Range src, Range dest) {
+    }
+
     private record Range(long start, long end) {
-        long getDiffFromStart(long number) {
-            return number >= start && end >= number ? number - start : -1;
+        boolean contains(long number) {
+            return number >= start && number <= end;
         }
     }
 }

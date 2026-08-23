@@ -44,7 +44,6 @@ class Day3SolverK(fileName: String) : Solver<Int>(fileName) {
                         }
                     }
                 }
-
                 return EngineSchematic(puzzle.first().length, puzzle.size, partNumbers, partMap, symbolMap)
             }
         }
@@ -75,17 +74,11 @@ class Day3SolverK(fileName: String) : Solver<Int>(fileName) {
             symbol.coordinate.getAdjacentCoordinates().mapNotNull { partMap[it] }.toSet()
     }
 
-    private data class PartNumber(
-        val value: Int,
-        val coordinates: Set<Coordinate>,
-    ) {
+    private data class PartNumber(val value: Int, val coordinates: Set<Coordinate>) {
         fun getNeighbours(): Set<Coordinate> = coordinates.flatMap { it.getAdjacentCoordinates() }.toSet()
     }
 
-    private data class Symbol(
-        val symbol: Char,
-        val coordinate: Coordinate,
-    )
+    private data class Symbol(val symbol: Char, val coordinate: Coordinate)
 
     data class Coordinate(val x: Int, val y: Int) {
         fun getAdjacentCoordinates(): Set<Coordinate> =

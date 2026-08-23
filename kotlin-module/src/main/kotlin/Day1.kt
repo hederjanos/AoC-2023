@@ -4,9 +4,7 @@ fun main() {
     Day1SolverK("day1.txt").printResults()
 }
 
-class Day1SolverK(
-    filename: String,
-) : Solver<Int>(filename) {
+class Day1SolverK(filename: String) : Solver<Int>(filename) {
     override fun solvePartOne(): Int = puzzle.sumOf { line -> CalibrationValue.from(line).value }
 
     override fun solvePartTwo(): Int = puzzle.sumOf { line -> CalibrationValue.from(line, withSpelled = true).value }
@@ -34,7 +32,6 @@ class Day1SolverK(
                         last = currentDigit
                     }
                 }
-
                 return CalibrationValue(first * 10 + last)
             }
         }

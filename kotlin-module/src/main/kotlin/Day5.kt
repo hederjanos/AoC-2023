@@ -4,9 +4,7 @@ fun main() {
     Day5SolverK("day5.txt").printResults()
 }
 
-class Day5SolverK(
-    fileName: String,
-) : Solver<Long>(fileName) {
+class Day5SolverK(fileName: String) : Solver<Long>(fileName) {
     private val seeds: List<Long> = "\\d+".toRegex().findAll(puzzle.first()).map { it.value.toLong() }.toList()
     private val rangeMaps: RangeMaps = RangeMaps.from(puzzle)
 
@@ -15,18 +13,24 @@ class Day5SolverK(
     override fun solvePartTwo(): Long {
         val reversedMaps = rangeMaps.reverse()
 
-        val ranges = (0 until seeds.size - 1 step 2).map { j -> LongRange(seeds[j], seeds[j] + seeds[j + 1] - 1) }
+        val seedRanges = (seeds.indices step 2).map { j ->
+            seeds[j] until (seeds[j] + seeds[j + 1])
+        }.toTypedArray()
 
-        return generateSequence(0L, Long::inc)
-            .first { testSrc ->
-                val dest = reversedMaps.getLocationFrom(testSrc)
-                ranges.any { range -> dest in range }
+        var testSrc = 0L
+        while (true) {
+            val dest = reversedMaps.getLocationFrom(testSrc)
+
+            for (range in seedRanges) {
+                if (dest in range) {
+                    return testSrc
+                }
             }
+            testSrc++
+        }
     }
 
-    private class RangeMaps(
-        val rangeMaps: List<RangeMap>,
-    ) {
+    private class RangeMaps(val rangeMaps: List<RangeMap>) {
         companion object {
             fun from(puzzle: List<String>): RangeMaps {
                 val rangeMaps = mutableListOf<RangeMap>()
@@ -37,15 +41,13 @@ class Day5SolverK(
                         rangeMap?.let { rangeMaps.add(it) }
                         continue
                     }
-                    val alphabetic = puzzle[i].first().isLetter()
-                    if (alphabetic) {
-                        rangeMap = RangeMap(puzzle[i].split(" ").first())
+                    if (puzzle[i].first().isLetter()) {
+                        rangeMap = RangeMap(puzzle[i].substringBefore(" "))
                     } else {
-                        val nums = puzzle[i].split(" ").map { it.toLong() }
-                        val (destStart, srcStart, range) = nums
-                        rangeMap?.addRange(
-                            LongRange(srcStart, srcStart + range - 1),
-                            LongRange(destStart, destStart + range - 1),
+                        val (destStart, srcStart, length) = puzzle[i].split(" ").map { it.toLong() }
+                        rangeMap?.addMapping(
+                            srcStart until (srcStart + length),
+                            destStart until (destStart + length),
                         )
                     }
                     if (i == puzzle.size - 1) {
@@ -56,43 +58,41 @@ class Day5SolverK(
             }
         }
 
-        fun getLocationFrom(src: Long): Long =
-            rangeMaps.fold(src) { dest, rangeMap ->
-                rangeMap.findRangePair(dest)?.let { rangeMap.getDestination(it, dest) } ?: dest
+        fun getLocationFrom(src: Long): Long {
+            var current = src
+            for (rangeMap in rangeMaps) {
+                current = rangeMap.getDestination(current)
             }
+            return current
+        }
 
         fun reverse(): RangeMaps {
-            val reversedMaps = rangeMaps.reversed()
-            val flippedMaps =
-                reversedMaps.map { rangeMap ->
+            val flippedMaps = rangeMaps.reversed()
+                .map { rangeMap ->
                     val newRangeMap = RangeMap(rangeMap.name)
-                    rangeMap.rangeMap.entries.forEach { (k, v) -> newRangeMap.addRange(v, k) }
+                    for ((src, dest) in rangeMap.rangePairs) {
+                        newRangeMap.addMapping(dest, src)
+                    }
                     newRangeMap
                 }
             return RangeMaps(flippedMaps)
         }
     }
 
-    private class RangeMap(
-        val name: String,
-    ) {
-        val rangeMap = mutableMapOf<LongRange, LongRange>()
+    private class RangeMap(val name: String) {
+        val rangePairs = mutableListOf<Pair<LongRange, LongRange>>()
 
-        fun addRange(
-            src: LongRange,
-            dest: LongRange,
-        ) {
-            rangeMap[src] = dest
+        fun addMapping(src: LongRange, dest: LongRange) {
+            rangePairs.add(src to dest)
         }
 
-        fun findRangePair(number: Long): Map.Entry<LongRange, LongRange>? = rangeMap.entries.firstOrNull { (key, _) -> number in key }
-
-        fun getDestination(
-            rangePair: Map.Entry<LongRange, LongRange>,
-            number: Long,
-        ): Long {
-            val (src, dest) = rangePair
-            return dest.first + (number - src.first)
+        fun getDestination(number: Long): Long {
+            for ((src, dest) in rangePairs) {
+                if (number in src) {
+                    return dest.first + (number - src.first)
+                }
+            }
+            return number
         }
     }
 }

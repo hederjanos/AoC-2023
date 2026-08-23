@@ -4,10 +4,7 @@ fun main() {
     Day2SolverK("day2.txt").printResults()
 }
 
-class Day2SolverK(
-    filename: String,
-) : Solver<Int>(filename) {
-
+class Day2SolverK(filename: String) : Solver<Int>(filename) {
     private val games: List<Game> = puzzle.map { Game.from(it) }
 
     override fun solvePartOne(): Int {
@@ -17,10 +14,7 @@ class Day2SolverK(
 
     override fun solvePartTwo(): Int = games.sumOf { it.getPower() }
 
-    private class Game(
-        val gameId: Int,
-        val colorMap: Map<String, Int>,
-    ) {
+    private class Game(val gameId: Int, val colorMap: Map<String, Int>) {
         companion object {
             private val GAME_PATTERN = Regex("""^Game\s+(\d+):""")
             private val CUBE_PATTERN = Regex("""(\d+)\s+(\w+)""")
@@ -36,7 +30,6 @@ class Day2SolverK(
 
                     colorCounts[color] = maxOf(colorCounts[color] ?: 0, count)
                 }
-
                 return Game(gameId, colorCounts)
             }
         }
