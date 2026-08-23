@@ -19,37 +19,33 @@ class Day2SolverK(
         val colorMap: Map<String, Int>,
     ) {
         companion object {
-            fun from(line: String): Game {
-                val gamePattern = Regex("^Game\\s(\\d+):(.+)$")
-                val cubeStatePattern = Regex("^(\\d+)\\s(\\w+)$")
+            private val GAME_PATTERN = Regex("""^Game\s+(\d+):""")
+            private val CUBE_PATTERN = Regex("""(\d+)\s+(\w+)""")
 
-                val gameMatcher = gamePattern.find(line)
-                val gameId = gameMatcher?.groupValues?.get(1)?.toInt() ?: 0
-                val subsets = gameMatcher?.groupValues?.get(2) ?: ""
+            fun from(line: String): Game {
+                val gameId = GAME_PATTERN.find(line)?.groupValues?.get(1)?.toInt() ?: 0
 
                 val colorCounts = mutableMapOf<String, Int>()
-                val sets = subsets.split(";")
-                for (set in sets) {
-                    val states = set.split(",")
-                    for (state in states) {
-                        val stateMatcher = cubeStatePattern.find(state.trim())
-                        if (stateMatcher != null) {
-                            val count = stateMatcher.groupValues[1].toInt()
-                            val color = stateMatcher.groupValues[2]
-                            colorCounts[color] = maxOf(colorCounts[color] ?: 0, count)
-                        }
-                    }
+
+                CUBE_PATTERN.findAll(line).forEach { match ->
+                    val count = match.groupValues[1].toInt()
+                    val color = match.groupValues[2]
+
+                    colorCounts[color] = maxOf(colorCounts[color] ?: 0, count)
                 }
+
                 return Game(gameId, colorCounts)
             }
         }
 
-        fun isValid(config: Map<String, Int>): Boolean = colorMap.all { (color, count) -> config.getOrDefault(color, 0) >= count }
+        fun isValid(config: Map<String, Int>): Boolean =
+            colorMap.all { (color, count) -> (config[color] ?: 0) >= count }
 
         fun getPower(): Int {
-            val redCount = colorMap.getOrDefault("red", 1)
-            val greenCount = colorMap.getOrDefault("green", 1)
-            val blueCount = colorMap.getOrDefault("blue", 1)
+            val redCount = colorMap["red"] ?: 1
+            val greenCount = colorMap["green"] ?: 1
+            val blueCount = colorMap["blue"] ?: 1
+
             return redCount * greenCount * blueCount
         }
     }

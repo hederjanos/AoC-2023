@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Day2Solver extends Solver<Integer> {
     public Day2Solver(String filename) {
@@ -24,32 +25,46 @@ public class Day2Solver extends Solver<Integer> {
     }
 
     private record Game(int gameId, Map<String, Integer> colorMap) {
+        private static final Pattern GAME_PATTERN = Pattern.compile("^Game\\s+(\\d+):");
+        private static final Pattern CUBE_PATTERN = Pattern.compile("(\\d+)\\s+(\\w+)");
+
         static Game from(String line) {
-            Pattern gamePattern = Pattern.compile("^Game\\s(\\d+):(.+)$");
-            Pattern cubeStatePattern = Pattern.compile("^(\\d+)\\s(\\w+)$");
-
             int gameId = 0;
-            String subsets = "";
+            Map<String, Integer> colorCounts = new HashMap<>();
 
-            Matcher gameMatcher = gamePattern.matcher(line);
+            Matcher gameMatcher = GAME_PATTERN.matcher(line);
             if (gameMatcher.find()) {
                 gameId = Integer.parseInt(gameMatcher.group(1));
-                subsets = gameMatcher.group(2);
             }
 
-            Map<String, Integer> colorCounts = new HashMap<>();
-            String[] sets = subsets.split(";");
-            for (String set : sets) {
-                String[] states = set.split(",");
-                for (String state : states) {
-                    Matcher stateMatcher = cubeStatePattern.matcher(state.trim());
-                    if (stateMatcher.find()) {
-                        int count = Integer.parseInt(stateMatcher.group(1));
-                        String color = stateMatcher.group(2);
-                        colorCounts.compute(color, (col, oldCount) -> oldCount == null ? count : Math.max(count, oldCount));
-                    }
-                }
+            Matcher cubeMatcher = CUBE_PATTERN.matcher(line);
+            while (cubeMatcher.find()) {
+                int count = Integer.parseInt(cubeMatcher.group(1));
+                String color = cubeMatcher.group(2);
+
+                colorCounts.merge(color, count, Math::max);
             }
+
+            return new Game(gameId, colorCounts);
+        }
+
+        static Game fromWitStreamAPI(String line) {
+            int gameId = Pattern.compile("^Game\\s+(\\d+):")
+                    .matcher(line)
+                    .results()
+                    .map(match -> Integer.parseInt(match.group(1)))
+                    .findFirst()
+                    .orElse(0);
+
+            Map<String, Integer> colorCounts = Pattern.compile("(\\d+)\\s+(\\w+)")
+                    .matcher(line)
+                    .results()
+                    .collect(Collectors.toMap(
+                            match -> match.group(2),
+                            match -> Integer.parseInt(match.group(1)),
+                            Math::max
+                    ));
+
             return new Game(gameId, colorCounts);
         }
 
