@@ -1,13 +1,11 @@
 package day._3;
 
 import util.common.Solver;
-import util.coordinate.Coordinate;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Day3Solver extends Solver<Integer> {
     private final EngineSchematic engineSchematic;
@@ -27,47 +25,62 @@ public class Day3Solver extends Solver<Integer> {
         return engineSchematic.getSumOfGearRatios();
     }
 
-    private record EngineSchematic(int height, int width, Set<PartNumber> partNumbers, Set<Symbol> symbols) {
-        final static char PERIOD = '.';
-        final static char ASTERISK = '*';
+    private record EngineSchematic(
+            int width,
+            int height,
+            Set<PartNumber> partNumbers,
+            Map<Coordinate, PartNumber> partMap,
+            Map<Coordinate, Symbol> symbolMap
+    ) {
+        private static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
+        private static final char PERIOD = '.';
+        private static final char ASTERISK = '*';
 
         static EngineSchematic from(List<String> puzzle) {
-            Set<Symbol> symbols = new HashSet<>();
             Set<PartNumber> partNumbers = new HashSet<>();
+            Map<Coordinate, PartNumber> partMap = new HashMap<>();
+            Map<Coordinate, Symbol> symbolMap = new HashMap<>();
+
             for (int i = 0; i < puzzle.size(); i++) {
                 String line = puzzle.get(i);
-                Matcher numMatcher = Pattern.compile("\\d+").matcher(line);
+                Matcher numMatcher = NUMBER_PATTERN.matcher(line);
+
                 while (numMatcher.find()) {
-                    String group = numMatcher.group();
-                    int start = numMatcher.start();
-                    int end = numMatcher.end();
-                    int value = Integer.parseInt(group);
+                    int value = Integer.parseInt(numMatcher.group());
                     Set<Coordinate> coordinates = new HashSet<>();
-                    for (int j = start; j < end; j++) {
+                    for (int j = numMatcher.start(); j < numMatcher.end(); j++) {
                         coordinates.add(new Coordinate(j, i));
                     }
-                    partNumbers.add(new PartNumber(value, coordinates));
+
+                    PartNumber part = new PartNumber(value, coordinates);
+                    partNumbers.add(part);
+                    for (Coordinate c : coordinates) {
+                        partMap.put(c, part);
+                    }
                 }
+
                 for (int j = 0; j < line.length(); j++) {
                     char charAt = line.charAt(j);
                     if (!Character.isDigit(charAt) && charAt != PERIOD) {
-                        symbols.add(new Symbol(charAt, new Coordinate(j, i)));
+                        Symbol symbol = new Symbol(charAt, new Coordinate(j, i));
+                        symbolMap.put(symbol.coordinate(), symbol);
                     }
                 }
             }
-            return new EngineSchematic(puzzle.get(0).length(), puzzle.size(), partNumbers, symbols);
+
+            return new EngineSchematic(puzzle.getFirst().length(), puzzle.size(), partNumbers, partMap, symbolMap);
         }
 
         int getSumOfValidPartNumbers() {
             return partNumbers.stream()
                     .filter(this::partNumberIsAdjacentToSymbol)
-                    .mapToInt(partNumber -> partNumber.value)
+                    .mapToInt(PartNumber::value)
                     .sum();
         }
 
         boolean partNumberIsAdjacentToSymbol(PartNumber partNumber) {
             return getNeighbours(partNumber).stream()
-                    .anyMatch(neighbour -> symbols.stream().anyMatch(symbol -> symbol.coordinate.equals(neighbour)));
+                    .anyMatch(symbolMap::containsKey);
         }
 
         Set<Coordinate> getNeighbours(PartNumber partNumber) {
@@ -77,63 +90,31 @@ public class Day3Solver extends Solver<Integer> {
         }
 
         boolean isCoordinateInBounds(Coordinate coordinate) {
-            return coordinate.getX() < width && coordinate.getX() >= 0 && coordinate.getY() < height && coordinate.getY() >= 0;
+            return coordinate.x() >= 0 && coordinate.x() < width &&
+                    coordinate.y() >= 0 && coordinate.y() < height;
         }
 
         int getSumOfGearRatios() {
-            return symbols.stream()
-                    .filter(symbol -> symbol.symbol == ASTERISK)
+            return symbolMap.values().stream()
+                    .filter(symbol -> symbol.symbol() == ASTERISK)
                     .map(this::getAdjacentPartNumbersToSymbol)
                     .filter(partNumbers -> partNumbers.size() == 2)
-                    .mapToInt(gearParts -> gearParts.stream()
-                            .mapToInt(partNumber -> partNumber.value)
-                            .reduce(1, (a, b) -> a * b))
+                    .mapToInt(gearParts -> {
+                        Iterator<PartNumber> it = gearParts.iterator();
+                        return it.next().value() * it.next().value();
+                    })
                     .sum();
         }
 
         Set<PartNumber> getAdjacentPartNumbersToSymbol(Symbol symbol) {
-            return symbol.coordinate.getAdjacentCoordinates().stream()
-                    .map(this::findPartNumber)
-                    .flatMap(Optional::stream)
+            return symbol.coordinate().getAdjacentCoordinates().stream()
+                    .map(partMap::get)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
-        }
-
-        Optional<PartNumber> findPartNumber(Coordinate coordinate) {
-            return partNumbers.stream().filter(partNumber -> partNumber.contains(coordinate)).findFirst();
-        }
-
-        Optional<Symbol> findSymbol(Coordinate coordinate) {
-            return symbols.stream().filter(symbol -> symbol.coordinate.equals(coordinate)).findFirst();
-        }
-
-        @Override
-        public String toString() {
-            return IntStream.range(0, height)
-                    .mapToObj(i -> IntStream.range(0, width)
-                            .mapToObj(j -> getPrintAt(i, j))
-                            .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append))
-                    .collect(Collectors.joining(System.lineSeparator()));
-        }
-
-        char getPrintAt(int i, int j) {
-            char print;
-            Coordinate coordinate = new Coordinate(j, i);
-            Optional<PartNumber> partNumber = findPartNumber(coordinate);
-            if (partNumber.isPresent()) {
-                print = (char) ('0' + partNumber.get().value);
-            } else {
-                Optional<Symbol> containsSymbol = findSymbol(coordinate);
-                print = containsSymbol.map(symbol -> symbol.symbol).orElse(PERIOD);
-            }
-            return print;
         }
     }
 
     private record PartNumber(int value, Set<Coordinate> coordinates) {
-        boolean contains(Coordinate coordinate) {
-            return coordinates.contains(coordinate);
-        }
-
         Set<Coordinate> getNeighbours() {
             return coordinates.stream()
                     .flatMap(coordinate -> coordinate.getAdjacentCoordinates().stream())
@@ -142,5 +123,42 @@ public class Day3Solver extends Solver<Integer> {
     }
 
     private record Symbol(char symbol, Coordinate coordinate) {
+    }
+
+    private record Coordinate(int x, int y) {
+        Set<Coordinate> getAdjacentCoordinates() {
+            Set<Coordinate> adjacent = new HashSet<>();
+            for (Direction dir : Direction.values()) {
+                adjacent.add(new Coordinate(this.x + dir.getX(), this.y + dir.getY()));
+            }
+            return adjacent;
+        }
+    }
+
+    private enum Direction {
+        UP(0, -1),
+        UPPER_RIGHT(1, -1),
+        RIGHT(1, 0),
+        DOWN_RIGHT(1, 1),
+        DOWN(0, 1),
+        DOWN_LEFT(-1, 1),
+        LEFT(-1, 0),
+        UPPER_LEFT(-1, -1);
+
+        private final int x;
+        private final int y;
+
+        Direction(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
     }
 }
