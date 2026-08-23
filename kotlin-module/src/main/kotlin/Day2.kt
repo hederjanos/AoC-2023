@@ -7,12 +7,15 @@ fun main() {
 class Day2SolverK(
     filename: String,
 ) : Solver<Int>(filename) {
+
+    private val games: List<Game> = puzzle.map { Game.from(it) }
+
     override fun solvePartOne(): Int {
         val config = mapOf("red" to 12, "green" to 13, "blue" to 14)
-        return puzzle.map { Game.from(it) }.filter { it.isValid(config) }.sumOf { it.gameId }
+        return games.filter { it.isValid(config) }.sumOf { it.gameId }
     }
 
-    override fun solvePartTwo(): Int = puzzle.map { Game.from(it) }.sumOf { it.getPower() }
+    override fun solvePartTwo(): Int = games.sumOf { it.getPower() }
 
     private class Game(
         val gameId: Int,

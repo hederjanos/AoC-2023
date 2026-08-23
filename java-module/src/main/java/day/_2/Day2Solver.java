@@ -3,25 +3,29 @@ package day._2;
 import util.common.Solver;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Day2Solver extends Solver<Integer> {
+    private final List<Game> games;
+
     public Day2Solver(String filename) {
         super(filename);
+        games = puzzle.stream().map(Game::from).toList();
     }
 
     @Override
     public Integer solvePartOne() {
         Map<String, Integer> config = Map.of("red", 12, "green", 13, "blue", 14);
-        return puzzle.stream().map(Game::from).filter(game -> game.isValid(config)).mapToInt(Game::gameId).sum();
+        return games.stream().filter(game -> game.isValid(config)).mapToInt(Game::gameId).sum();
     }
 
     @Override
     public Integer solvePartTwo() {
-        return puzzle.stream().map(Game::from).mapToInt(Game::getPower).sum();
+        return games.stream().mapToInt(Game::getPower).sum();
     }
 
     private record Game(int gameId, Map<String, Integer> colorMap) {
