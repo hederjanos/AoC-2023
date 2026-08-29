@@ -9,7 +9,7 @@ class Day1SolverK(filename: String) : Solver<Int>(filename) {
 
     override fun solvePartTwo(): Int = puzzle.sumOf { line -> CalibrationValue.from(line, withSpelled = true).value }
 
-    private class CalibrationValue(val value: Int) {
+    private data class CalibrationValue(val value: Int) {
         companion object {
             fun from(line: String, withSpelled: Boolean = false): CalibrationValue {
                 var first = -1

@@ -30,31 +30,33 @@ class Day5SolverK(fileName: String) : Solver<Long>(fileName) {
         }
     }
 
-    private class RangeMaps(val rangeMaps: List<RangeMap>) {
+    private class RangeMaps(private val rangeMaps: List<RangeMap>) {
         companion object {
             fun from(puzzle: List<String>): RangeMaps {
                 val rangeMaps = mutableListOf<RangeMap>()
-                var rangeMap: RangeMap? = null
+                var currentName: String? = null
+                var currentPairs = mutableListOf<Pair<LongRange, LongRange>>()
 
                 for (i in 2 until puzzle.size) {
                     if (puzzle[i].isEmpty()) {
-                        rangeMap?.let { rangeMaps.add(it) }
+                        currentName?.let { rangeMaps.add(RangeMap(it, currentPairs.toList())) }
+                        currentName = null
+                        currentPairs = mutableListOf()
                         continue
                     }
                     if (puzzle[i].first().isLetter()) {
-                        rangeMap = RangeMap(puzzle[i].substringBefore(" "))
+                        currentName = puzzle[i].substringBefore(" ")
                     } else {
                         val (destStart, srcStart, length) = puzzle[i].split(" ").map { it.toLong() }
-                        rangeMap?.addMapping(
-                            srcStart until (srcStart + length),
-                            destStart until (destStart + length),
+                        currentPairs.add(
+                            (srcStart until (srcStart + length)) to (destStart until (destStart + length))
                         )
                     }
                     if (i == puzzle.size - 1) {
-                        rangeMap?.let { rangeMaps.add(it) }
+                        currentName?.let { rangeMaps.add(RangeMap(it, currentPairs.toList())) }
                     }
                 }
-                return RangeMaps(rangeMaps)
+                return RangeMaps(rangeMaps.toList())
             }
         }
 
@@ -69,23 +71,14 @@ class Day5SolverK(fileName: String) : Solver<Long>(fileName) {
         fun reverse(): RangeMaps {
             val flippedMaps = rangeMaps.reversed()
                 .map { rangeMap ->
-                    val newRangeMap = RangeMap(rangeMap.name)
-                    for ((src, dest) in rangeMap.rangePairs) {
-                        newRangeMap.addMapping(dest, src)
-                    }
-                    newRangeMap
+                    val flippedPairs = rangeMap.rangePairs.map { (src, dest) -> dest to src }
+                    RangeMap(rangeMap.name, flippedPairs)
                 }
             return RangeMaps(flippedMaps)
         }
     }
 
-    private class RangeMap(val name: String) {
-        val rangePairs = mutableListOf<Pair<LongRange, LongRange>>()
-
-        fun addMapping(src: LongRange, dest: LongRange) {
-            rangePairs.add(src to dest)
-        }
-
+    private data class RangeMap(val name: String, val rangePairs: List<Pair<LongRange, LongRange>>) {
         fun getDestination(number: Long): Long {
             for ((src, dest) in rangePairs) {
                 if (number in src) {

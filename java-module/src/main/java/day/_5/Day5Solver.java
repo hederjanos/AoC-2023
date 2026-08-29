@@ -114,10 +114,7 @@ public class Day5Solver extends Solver<Long> {
         }
     }
 
-    private static final class RangeMap {
-        private final String name;
-        private final List<RangePair> rangePairs;
-
+    private record RangeMap(String name, List<RangePair> rangePairs) {
         RangeMap(String name, List<RangePair> rangePairs) {
             this.name = name;
             this.rangePairs = List.copyOf(rangePairs);

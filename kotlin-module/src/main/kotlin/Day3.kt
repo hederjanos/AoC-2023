@@ -12,11 +12,11 @@ class Day3SolverK(fileName: String) : Solver<Int>(fileName) {
     override fun solvePartTwo(): Int = engineSchematic.getSumOfGearRatios()
 
     private class EngineSchematic(
-        val width: Int,
-        val height: Int,
-        val partNumbers: Set<PartNumber>,
-        val partMap: Map<Coordinate, PartNumber>,
-        val symbolMap: Map<Coordinate, Symbol>
+        private val width: Int,
+        private val height: Int,
+        private val partNumbers: Set<PartNumber>,
+        private val partMap: Map<Coordinate, PartNumber>,
+        private val symbolMap: Map<Coordinate, Symbol>
     ) {
         companion object {
             private val NUMBER_PATTERN = "\\d+".toRegex()
@@ -80,12 +80,12 @@ class Day3SolverK(fileName: String) : Solver<Int>(fileName) {
 
     private data class Symbol(val symbol: Char, val coordinate: Coordinate)
 
-    data class Coordinate(val x: Int, val y: Int) {
+    private data class Coordinate(val x: Int, val y: Int) {
         fun getAdjacentCoordinates(): Set<Coordinate> =
             Direction.entries.map { Coordinate(this.x + it.dx, this.y + it.dy) }.toSet()
     }
 
-    enum class Direction(val dx: Int, val dy: Int) {
+    private enum class Direction(val dx: Int, val dy: Int) {
         UP(0, -1), UPPER_RIGHT(1, -1), RIGHT(1, 0), DOWN_RIGHT(1, 1),
         DOWN(0, 1), DOWN_LEFT(-1, 1), LEFT(-1, 0), UPPER_LEFT(-1, -1)
     }

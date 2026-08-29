@@ -14,7 +14,7 @@ class Day2SolverK(filename: String) : Solver<Int>(filename) {
 
     override fun solvePartTwo(): Int = games.sumOf { it.getPower() }
 
-    private class Game(val gameId: Int, val colorMap: Map<String, Int>) {
+    private class Game(val gameId: Int, private val colorMap: Map<String, Int>) {
         companion object {
             private val GAME_PATTERN = Regex("""^Game\s+(\d+):""")
             private val CUBE_PATTERN = Regex("""(\d+)\s+(\w+)""")

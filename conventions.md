@@ -13,13 +13,13 @@ Domain concepts specific to the day should be encapsulated as inner types. Immut
 * **Class vs. Record:**
   * **Use `private static final class`:** If the domain class contains a lot of logic or behavior, it should be a regular class.
   * **Use `private record`:** If the domain object is primarily a data carrier, or if it will be used in hash-based collections. It is acceptable for a record to contain one or two small helper methods.
-* **True Immutability:** 
+* **True Immutability preferred:** 
   * Marking fields as `final` (or using a `record`) only provides *reference* immutability. It does not prevent the contents of mutable reference types (like `List`, `Set`, `Map`, or arrays) from being modified. 
-  * To achieve true deep immutability, ensure that mutable reference types are wrapped in unmodifiable views (e.g., `List.copyOf()`, `Collections.unmodifiableMap()`) when assigning them in constructors or returning them via getters.
+  * To achieve true deep immutability, ensure that mutable reference types are wrapped in unmodifiable views (e.g., `List.copyOf()`, `Collections.unmodifiableMap()`) when assigning them in constructors or returning them via getters. *(Note: Private arrays are allowed for `[]` indexing readability).*
   
 ## 3. Visibility Modifiers
 * **Inner Types:** All helper classes, records, and enums must be `private` to avoid polluting the global namespace. Classes should also be `static` and `final`.
-* **Inner Fields & Methods:** For consistency, always use the explicit `private` modifier for all fields, even within `private` inner classes. Factory methods accessed by the outer class can be package-private.
+* **Inner Fields & Methods:** For consistency, always use the explicit `private` modifier for all fields, even within `private` inner classes. Methods accessed by the outer class can be package-private.
 
 ## 4. Parsing Logic
 * **Factory Methods:** Complex parsing of the `puzzle` list should be delegated to static factory methods on the inner domain classes rather than cluttering the solver's constructor.
