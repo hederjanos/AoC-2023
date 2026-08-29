@@ -25,16 +25,30 @@ public class Day3Solver extends Solver<Integer> {
         return engineSchematic.getSumOfGearRatios();
     }
 
-    private record EngineSchematic(
-            int width,
-            int height,
-            Set<PartNumber> partNumbers,
-            Map<Coordinate, PartNumber> partMap,
-            Map<Coordinate, Symbol> symbolMap
-    ) {
+    private static final class EngineSchematic {
         private static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
         private static final char PERIOD = '.';
         private static final char ASTERISK = '*';
+
+        private final int width;
+        private final int height;
+        private final Set<PartNumber> partNumbers;
+        private final Map<Coordinate, PartNumber> partMap;
+        private final Map<Coordinate, Symbol> symbolMap;
+
+        EngineSchematic(
+                int width,
+                int height,
+                Set<PartNumber> partNumbers,
+                Map<Coordinate, PartNumber> partMap,
+                Map<Coordinate, Symbol> symbolMap
+        ) {
+            this.width = width;
+            this.height = height;
+            this.partNumbers = Set.copyOf(partNumbers);
+            this.partMap = Map.copyOf(partMap);
+            this.symbolMap = Map.copyOf(symbolMap);
+        }
 
         static EngineSchematic from(List<String> puzzle) {
             Set<PartNumber> partNumbers = new HashSet<>();
@@ -67,7 +81,6 @@ public class Day3Solver extends Solver<Integer> {
                     }
                 }
             }
-
             return new EngineSchematic(puzzle.getFirst().length(), puzzle.size(), partNumbers, partMap, symbolMap);
         }
 
@@ -115,6 +128,10 @@ public class Day3Solver extends Solver<Integer> {
     }
 
     private record PartNumber(int value, Set<Coordinate> coordinates) {
+        PartNumber {
+            coordinates = Set.copyOf(coordinates);
+        }
+
         Set<Coordinate> getNeighbours() {
             return coordinates.stream()
                     .flatMap(coordinate -> coordinate.getAdjacentCoordinates().stream())

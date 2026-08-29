@@ -26,7 +26,7 @@ public class Day6Solver extends Solver<Long> {
         return RaceInfo.parseCombined(puzzle).calculateWaysToBeatRecord();
     }
 
-    private static class RaceInfo {
+    private static final class RaceInfo {
         private static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
 
         private final long time;

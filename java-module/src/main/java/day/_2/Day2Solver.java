@@ -28,9 +28,17 @@ public class Day2Solver extends Solver<Integer> {
         return games.stream().mapToInt(Game::getPower).sum();
     }
 
-    private record Game(int gameId, Map<String, Integer> colorMap) {
+    private static final class Game {
         private static final Pattern GAME_PATTERN = Pattern.compile("^Game\\s+(\\d+):");
         private static final Pattern CUBE_PATTERN = Pattern.compile("(\\d+)\\s+(\\w+)");
+
+        private final int gameId;
+        private final Map<String, Integer> colorMap;
+
+        Game(int gameId, Map<String, Integer> colorMap) {
+            this.gameId = gameId;
+            this.colorMap = Map.copyOf(colorMap);
+        }
 
         static Game from(String line) {
             int gameId = 0;
@@ -82,6 +90,10 @@ public class Day2Solver extends Solver<Integer> {
             int greenCount = colorMap.getOrDefault("green", 1);
             int blueCount = colorMap.getOrDefault("blue", 1);
             return redCount * greenCount * blueCount;
+        }
+
+        int gameId() {
+            return gameId;
         }
     }
 }

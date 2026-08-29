@@ -51,28 +51,41 @@ public class Day5Solver extends Solver<Long> {
         }
     }
 
-    private record RangeMaps(List<RangeMap> rangeMaps) {
+    private static final class RangeMaps {
+        private final List<RangeMap> rangeMaps;
+
+        RangeMaps(List<RangeMap> rangeMaps) {
+            this.rangeMaps = List.copyOf(rangeMaps);
+        }
+
         static RangeMaps from(List<String> puzzle) {
             List<RangeMap> rangeMaps = new ArrayList<>();
-            RangeMap rangeMap = null;
+            String currentName = null;
+            List<RangePair> currentPairs = new ArrayList<>();
 
             for (int i = 2; i < puzzle.size(); i++) {
                 if (puzzle.get(i).isEmpty()) {
-                    rangeMaps.add(rangeMap);
+                    if (currentName != null) {
+                        rangeMaps.add(new RangeMap(currentName, currentPairs));
+                    }
+                    currentName = null;
+                    currentPairs = new ArrayList<>();
                     continue;
                 }
                 boolean alphabetic = Character.isAlphabetic(puzzle.get(i).charAt(0));
                 if (alphabetic) {
-                    rangeMap = new RangeMap(puzzle.get(i).split(" ")[0]);
+                    currentName = puzzle.get(i).split(" ")[0];
                 } else {
                     String[] nums = puzzle.get(i).split(" ");
                     long destStart = Long.parseLong(nums[0]);
                     long srcStart = Long.parseLong(nums[1]);
                     long range = Long.parseLong(nums[2]);
-                    rangeMap.addRangePair(new Range(srcStart, srcStart + range - 1), new Range(destStart, destStart + range - 1));
+                    currentPairs.add(new RangePair(new Range(srcStart, srcStart + range - 1), new Range(destStart, destStart + range - 1)));
                 }
                 if (i == puzzle.size() - 1) {
-                    rangeMaps.add(rangeMap);
+                    if (currentName != null) {
+                        rangeMaps.add(new RangeMap(currentName, currentPairs));
+                    }
                 }
             }
             return new RangeMaps(rangeMaps);
@@ -91,26 +104,23 @@ public class Day5Solver extends Solver<Long> {
             Collections.reverse(reversedMaps);
             List<RangeMap> flippedMaps = reversedMaps.stream()
                     .map(rangeMap -> {
-                        RangeMap newRangeMap = new RangeMap(rangeMap.name);
-                        rangeMap.rangePairs.forEach(pair -> newRangeMap.addRangePair(pair.dest, pair.src));
-                        return newRangeMap;
+                        List<RangePair> flippedPairs = rangeMap.rangePairs.stream()
+                                .map(pair -> new RangePair(pair.dest(), pair.src()))
+                                .toList();
+                        return new RangeMap(rangeMap.name, flippedPairs);
                     })
                     .collect(Collectors.toList());
             return new RangeMaps(flippedMaps);
         }
     }
 
-    private static class RangeMap {
+    private static final class RangeMap {
         private final String name;
+        private final List<RangePair> rangePairs;
 
-        private final List<RangePair> rangePairs = new ArrayList<>();
-
-        RangeMap(String name) {
+        RangeMap(String name, List<RangePair> rangePairs) {
             this.name = name;
-        }
-
-        void addRangePair(Range src, Range dest) {
-            rangePairs.add(new RangePair(src, dest));
+            this.rangePairs = List.copyOf(rangePairs);
         }
 
         long getDestination(long number) {
